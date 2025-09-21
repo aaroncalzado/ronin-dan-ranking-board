@@ -135,6 +135,9 @@
             <p class="text-xs text-gray-500">
                 Vibe-coded by <a href="https://www.aaroncalzado.com" target="_blank" rel="noopener noreferrer" class="text-rose-500 hover:underline">Aaron Calzado</a> via <a href="https://gemini.google.com/" target="_blank" rel="noopener noreferrer" class="text-rose-500 hover:underline">Google Gemini</a>
             </p>
+            <p class="text-xs text-gray-500 mt-2">
+                View project on <a href="https://github.com/aaroncalzado/ronin-dan-ranking-board" target="_blank" rel="noopener noreferrer" class="text-rose-500 hover:underline">GitHub</a>
+            </p>
         </footer>
     </div>
 
@@ -148,7 +151,7 @@
         const importFileInput = document.getElementById('import-file');
 
         let players = JSON.parse(localStorage.getItem('danRankingPlayers')) || [];
-
+        
         // --- ANIMATION & RENDERING ---
 
         // A wrapper function to handle animations during updates
@@ -211,7 +214,7 @@
                 `;
                 return;
             }
-
+            
             const ranks = {};
             for (let i = 1; i <= 10; i++) {
                 ranks[i] = [];
@@ -223,10 +226,10 @@
                     }
                 });
             });
-
+            
             for (let dan = 1; dan <= 10; dan++) {
                 const charactersInRank = ranks[dan];
-
+                
                 charactersInRank.sort((a, b) => {
                     if (b.points !== a.points) {
                         return b.points - a.points;
@@ -236,11 +239,11 @@
 
                 const section = document.createElement('section');
                 section.className = `dan-rank dan-${dan} bg-gray-900 p-4 sm:p-6`;
-
+                
                 let headerText = `${dan} Dan`;
                 if (dan === 1) headerText += " (Highest)";
                 if (dan === 10) headerText += " (Lowest)";
-
+                
                 let characterListHTML = '<div class="text-center text-gray-500 italic py-4 text-xs">No characters at this rank.</div>';
 
                 if (charactersInRank.length > 0) {
@@ -295,7 +298,7 @@
         function formatPoints(points) {
             return points > 0 ? `+${points}` : `${points}`;
         }
-
+        
         function savePlayers() {
             localStorage.setItem('danRankingPlayers', JSON.stringify(players));
         }
@@ -355,23 +358,23 @@
                     character.points = -2;
                 }
             }
-
+            
             savePlayers();
             updateAndAnimateBoard();
         }
-
+        
         window.moveCharacter = function(playerId, characterName, direction) {
             const player = players.find(p => p.id === playerId);
             if (!player) return;
             const sourceChar = player.characters.find(c => c.name === characterName);
             if (!sourceChar) return;
 
-            const charactersInRank = players.flatMap(p =>
+            const charactersInRank = players.flatMap(p => 
                 p.characters.map(char => ({...char, playerId: p.id}))
             ).filter(char => char.dan === sourceChar.dan);
-
+            
             charactersInRank.sort((a, b) => b.points - a.points || a.sortOrder - b.sortOrder);
-
+            
             const sourceIndex = charactersInRank.findIndex(c => c.playerId === playerId && c.name === characterName);
             if (sourceIndex === -1) return;
 
@@ -383,7 +386,7 @@
                 console.error("Cannot move character with different points.");
                 return;
             }
-
+            
             const targetPlayer = players.find(p => p.id === targetCharData.playerId);
             const targetChar = targetPlayer.characters.find(c => c.name === targetCharData.name);
 
@@ -409,7 +412,7 @@
             savePlayers();
             updateAndAnimateBoard();
         }
-
+        
         // --- IMPORT/EXPORT FUNCTIONS ---
         function exportData() {
             if (players.length === 0) {
@@ -417,7 +420,7 @@
                 return;
             }
             const header = ['playerId', 'playerName', 'characterName', 'dan', 'points', 'sortOrder'];
-            const rows = players.flatMap(player =>
+            const rows = players.flatMap(player => 
                 player.characters.map(character => [
                     player.id, player.name, character.name, character.dan,
                     character.points, character.sortOrder || Date.now()
@@ -446,7 +449,7 @@
                     const header = lines.shift().trim().split(',');
                     const sortOrderIndex = header.indexOf('sortOrder');
                     if (header.indexOf('playerId') === -1) throw new Error("Invalid CSV format.");
-
+                    
                     const importedPlayersMap = new Map();
                     lines.forEach(line => {
                         if (!line) return;
