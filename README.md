@@ -4,13 +4,13 @@ A lightweight, portable, and offline-first dan ranking board designed for local 
 The app saves all data to your browser's local storage, ensuring your rankings are preserved between sessions. You can also import and export your data as a `.csv` file, making it easy to manage multiple ranking boards for different games or communities.
 
 ## Table of Contents
-1. [Key Features](##key-features)
-2. [Installation](##installation)
-3. [How to Use](##how-to-use)
-4. [Contributing](##contributing)
-5. [License](##license)
-6. [Credits](##credits)    
-7. [Support](##support)
+1. [Key Features](#key-features)
+2. [Installation](#installation)
+3. [How to Use](#how-to-use)
+4. [Contributing](#contributing)
+5. [License](#license)
+6. [Credits](#credits)    
+7. [Support](#support)
 
 ## Key Features
 - **Player & Character Tracking:** Add multiple players and track an unlimited number of characters for each.
