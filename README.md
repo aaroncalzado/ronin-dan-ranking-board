@@ -10,7 +10,7 @@ The app saves all data to your browser's local storage, ensuring your rankings a
 4. [Contributing](#contributing)
 5. [License](#license)
 6. [Credits](#credits)    
-7. [Support](#support)
+7. [Support and Contact](#support-and-contact)
 
 ## Key Features
 - **Player & Character Tracking:** Add multiple players and track an unlimited number of characters for each.
@@ -65,6 +65,6 @@ This project is distributed under the GNU GPL-2.0 License. See the `LICENSE` fil
 ## Credits
 - **Concept & Development:** [Aaron Calzado](https://www.aaroncalzado.com "null")
 - **AI-Assisted Development:** [Google Gemini](https://gemini.google.com/ "null")
-## Support and Conta
 
+## Support and Contact
 For support, questions, or to report an issue, please open an issue in the GitHub repository for this project.
