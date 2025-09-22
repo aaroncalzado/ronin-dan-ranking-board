@@ -22,10 +22,10 @@
         .dan-rank {
             border-left: 4px solid;
         }
-        /* New Dan Colors from Ronin PNG Palette */
-        .dan-1, .dan-2, .dan-3 { border-color: #facc15; } /* Vibrant Yellow */
-        .dan-4, .dan-5, .dan-6, .dan-7 { border-color: #f43f5e; } /* Vibrant Pink/Rose */
-        .dan-8, .dan-9, .dan-10 { border-color: #4f46e5; } /* Vibrant Blue/Indigo */
+        /* Dan colors now map to the new order (10 is highest) */
+        .dan-10, .dan-9, .dan-8 { border-color: #facc15; } /* Vibrant Yellow for top ranks */
+        .dan-7, .dan-6, .dan-5, .dan-4 { border-color: #f43f5e; } /* Vibrant Pink/Rose for mid ranks */
+        .dan-3, .dan-2, .dan-1 { border-color: #4f46e5; } /* Vibrant Blue/Indigo for low ranks */
 
         .points-positive { color: #22d3ee; } /* Cyan */
         .points-negative { color: #f43f5e; } /* Pink/Rose */
@@ -106,7 +106,7 @@
                         <button type="submit" class="w-full bg-rose-600 hover:bg-rose-700 text-white py-2 px-4 transition duration-200 text-xs btn">Add Entry</button>
                     </div>
                 </form>
-                 <p class="text-[10px] text-gray-500 mt-3">New entries start at 10 Dan. If Gamer Tag exists, new character is added.</p>
+                 <p class="text-[10px] text-gray-500 mt-3">New entries start at 1 Dan (Shodan). If Gamer Tag exists, new character is added.</p>
             </div>
 
             <!-- Import/Export Section -->
@@ -227,7 +227,8 @@
                 });
             });
             
-            for (let dan = 1; dan <= 10; dan++) {
+            // Loop backwards to display 10 Dan (Highest) first
+            for (let dan = 10; dan >= 1; dan--) {
                 const charactersInRank = ranks[dan];
                 
                 charactersInRank.sort((a, b) => {
@@ -240,9 +241,11 @@
                 const section = document.createElement('section');
                 section.className = `dan-rank dan-${dan} bg-gray-900 p-4 sm:p-6`;
                 
-                let headerText = `${dan} Dan`;
-                if (dan === 1) headerText += " (Highest)";
-                if (dan === 10) headerText += " (Lowest)";
+                const danNames = {
+                    1: "Shodan", 2: "Nidan", 3: "Sandan", 4: "Yondan", 5: "Godan",
+                    6: "Rokudan", 7: "Shichidan", 8: "Hachidan", 9: "Kyudan", 10: "Judan"
+                };
+                let headerText = `${dan} Dan (${danNames[dan] || ''})`;
                 
                 let characterListHTML = '<div class="text-center text-gray-500 italic py-4 text-xs">No characters at this rank.</div>';
 
@@ -317,12 +320,12 @@
                     alert('This character already exists for this player.');
                     return;
                 }
-                player.characters.push({ name: characterName, dan: 10, points: 0, sortOrder: Date.now() });
+                player.characters.push({ name: characterName, dan: 1, points: 0, sortOrder: Date.now() });
             } else {
                 player = {
                     id: crypto.randomUUID(),
                     name: gamerTag,
-                    characters: [{ name: characterName, dan: 10, points: 0, sortOrder: Date.now() }]
+                    characters: [{ name: characterName, dan: 1, points: 0, sortOrder: Date.now() }]
                 };
                 players.push(player);
             }
@@ -340,21 +343,23 @@
 
             character.points += amount;
 
+            // Rank Up logic (e.g., 1 Dan -> 2 Dan)
             if (character.points >= 3) {
-                if (character.dan > 1) {
-                    character.dan -= 1;
+                if (character.dan < 10) { // Can rank up if not max rank
+                    character.dan += 1;
                     character.points = 0;
                     triggerConfetti();
-                } else {
+                } else { // At max rank, cap points
                     character.points = 2;
                 }
             }
 
+            // De-rank logic (e.g., 2 Dan -> 1 Dan)
             if (character.points <= -3) {
-                if (character.dan < 10) {
-                    character.dan += 1;
+                if (character.dan > 1) { // Can de-rank if not min rank
+                    character.dan -= 1;
                     character.points = 0;
-                } else {
+                } else { // At min rank, cap points
                     character.points = -2;
                 }
             }
