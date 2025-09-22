@@ -14,12 +14,12 @@ The app saves all data to your browser's local storage, ensuring your rankings a
 
 ## Key Features
 - **Player & Character Tracking:** Add multiple players and track an unlimited number of characters for each.
-- **10-to-1 Dan Ranking System:** A classic ranking structure, perfect for fighting games and other competitive scenes.
+- **1-to-10 Dan Ranking System:** A classic ranking structure from Shodan (1 Dan) to Judan (10 Dan), perfect for fighting games and other competitive scenes.
 - **Point-Based Promotions:** Players rank up after earning +3 points and de-rank at -3 points, with automatic point resets on rank change.
 - **Dynamic Sorting:** Players are automatically sorted by points. Players with identical points can be manually reordered.
 - **Data Persistence:** All data is automatically saved to the browser's local storage.
 - **CSV Import & Export:** Easily back up your board or manage multiple communities by exporting and importing your data.
-- **Retro Arcade UI:** A stylish, pixel-font interface with a dark mode theme, smooth animations, and celebratory confetti effects.    
+- **Retro Arcade UI:** A stylish, pixel-font interface with a dark mode theme, smooth animations, and celebratory confetti effects.
 - **Fully Portable:** Runs entirely from a single `.html` file. No server or internet connection required after the initial load.
 
 ## Installation
