@@ -16,7 +16,7 @@
             text-shadow: 1px 1px #000000;
         }
         /* Apply font to inputs and buttons */
-        input, button, label {
+        input, button, label, select {
              font-family: 'Press Start 2P', cursive;
         }
         .dan-rank {
@@ -51,6 +51,56 @@
             border-right-color: #ffffff50;
             transform: translateY(1px);
         }
+        /* Custom Dropdown Styling */
+        .custom-select-wrapper {
+            position: relative;
+        }
+        .custom-select-trigger {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            background-color: #000;
+            border: 2px solid #6b7280;
+            padding: 0.5rem 0.75rem;
+            color: #e0e0e0;
+            font-size: 0.75rem; /* text-xs */
+            cursor: pointer;
+        }
+        .custom-select-trigger:focus-within {
+             outline: 2px solid transparent;
+             outline-offset: 2px;
+             border-color: #f43f5e;
+             box-shadow: 0 0 0 2px #f43f5e;
+        }
+        .custom-options {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background-color: #111827; /* bg-gray-900 */
+            border: 2px solid #f43f5e; /* border-rose-500 */
+            z-index: 10;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .custom-option {
+            padding: 0.75rem;
+            font-size: 0.75rem; /* text-xs */
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .custom-option:hover, .custom-option.selected {
+            background-color: #f43f5e; /* rose-500 */
+            color: #000;
+        }
+        .custom-arrow {
+            width: 12px;
+            height: 8px;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3e%3cpath fill='%23e0e0e0' d='M1 0h10v2H1V0zM3 2h6v2H3V2zM5 4h2v2H5V4z'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+        }
+
         #confetti-canvas {
             position: fixed;
             top: 0;
@@ -89,39 +139,65 @@
             <p class="text-xs text-gray-400 mt-4 leading-relaxed">A lightweight portable dan ranking board to track player progress and rankings in your local scene.</p>
         </header>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <div class="space-y-8 mb-8">
             <!-- Add Player/Character Form -->
             <div class="bg-gray-900 p-6 border-2 border-rose-500">
-                <h2 class="text-xl font-semibold text-rose-500 mb-4">Add Player / Character</h2>
+                <h2 class="text-xl font-semibold text-rose-500 mb-4">Add Player/Character</h2>
+                <p class="text-[10px] text-gray-500 mb-4">Default rank is 1 Dan with 0 points. If a Gamer Tag exists, a different character must be added.</p>
                 <form id="add-form" class="flex flex-col gap-4">
-                    <div>
-                        <label for="gamer-tag" class="block text-xs font-medium text-gray-300 mb-2">Gamer Tag</label>
-                        <input type="text" id="gamer-tag" required class="mt-1 block w-full bg-black border-2 border-gray-700 py-2 px-3 text-white text-xs focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-rose-500">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label for="gamer-tag" class="block text-xs font-medium text-gray-300 mb-2">Gamer Tag</label>
+                            <input type="text" id="gamer-tag" required class="mt-1 block w-full bg-black border-2 border-gray-700 py-2 px-3 text-white text-xs focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-rose-500">
+                        </div>
+                        <div>
+                            <label for="character-name" class="block text-xs font-medium text-gray-300 mb-2">Character</label>
+                            <input type="text" id="character-name" required class="mt-1 block w-full bg-black border-2 border-gray-700 py-2 px-3 text-white text-xs focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-rose-500">
+                        </div>
                     </div>
-                    <div>
-                        <label for="character-name" class="block text-xs font-medium text-gray-300 mb-2">Character</label>
-                        <input type="text" id="character-name" required class="mt-1 block w-full bg-black border-2 border-gray-700 py-2 px-3 text-white text-xs focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-rose-500">
+                     <!-- Rank and Points Selection -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="dan-select" class="block text-xs font-medium text-gray-300 mb-2">Rank</label>
+                            <div class="custom-select-wrapper mt-1">
+                                <select id="dan-select" class="hidden">
+                                    <option value="1">1 Dan</option>
+                                    <option value="2">2 Dan</option>
+                                    <option value="3">3 Dan</option>
+                                    <option value="4">4 Dan</option>
+                                    <option value="5">5 Dan</option>
+                                    <option value="6">6 Dan</option>
+                                    <option value="7">7 Dan</option>
+                                    <option value="8">8 Dan</option>
+                                    <option value="9">9 Dan</option>
+                                    <option value="10">10 Dan</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <label for="points-select" class="block text-xs font-medium text-gray-300 mb-2">Points</label>
+                             <div class="custom-select-wrapper mt-1">
+                                <select id="points-select" class="hidden">
+                                    <option value="2">+2</option>
+                                    <option value="1">+1</option>
+                                    <option value="0" selected>0</option>
+                                    <option value="-1">-1</option>
+                                    <option value="-2">-2</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <button type="submit" class="w-full bg-rose-600 hover:bg-rose-700 text-white py-2 px-4 transition duration-200 text-xs btn">Add Entry</button>
+                    <div class="flex justify-end mt-2">
+                        <button type="submit" class="w-64 text-center bg-rose-600 hover:bg-rose-700 text-white py-2 px-6 transition duration-200 text-xs btn">Add Entry</button>
                     </div>
                 </form>
-                 <p class="text-[10px] text-gray-500 mt-3">New entries start at 1 Dan (Shodan). If Gamer Tag exists, new character is added.</p>
             </div>
 
             <!-- Import/Export Section -->
-            <div class="bg-gray-900 p-6 flex flex-col gap-6 justify-center border-2 border-indigo-600">
-                <div>
-                    <h3 class="text-base font-semibold text-indigo-400 mb-2">Export Data</h3>
-                    <p class="text-[10px] text-gray-400 mb-3">Save the current ranking board to a .csv file.</p>
-                    <button id="export-button" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 transition duration-200 text-xs btn">Export CSV</button>
-                </div>
-                <div>
-                    <h3 class="text-base font-semibold text-yellow-400 mb-2">Import Data</h3>
-                    <p class="text-[10px] text-gray-400 mb-3">This will overwrite current data.</p>
-                    <input type="file" id="import-file" class="hidden" accept=".csv">
-                    <button id="import-button" class="w-full bg-yellow-500 hover:bg-yellow-600 text-black py-2 px-4 transition duration-200 text-xs btn">Import CSV</button>
-                </div>
+            <div class="flex justify-end gap-4">
+                <input type="file" id="import-file" class="hidden" accept=".csv">
+                <button id="export-button" class="w-64 text-center bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-6 transition duration-200 text-xs btn">Export Data (CSV)</button>
+                <button id="import-button" class="w-64 text-center bg-yellow-500 hover:bg-yellow-600 text-black py-2 px-6 transition duration-200 text-xs btn">Import Data (CSV)</button>
             </div>
         </div>
 
@@ -153,359 +229,360 @@
 
 
     <script>
-        const gamerTagInput = document.getElementById('gamer-tag');
-        const characterNameInput = document.getElementById('character-name');
-        const addForm = document.getElementById('add-form');
-        const rankingBoard = document.getElementById('ranking-board');
-        const exportButton = document.getElementById('export-button');
-        const importButton = document.getElementById('import-button');
-        const importFileInput = document.getElementById('import-file');
-        // Modal elements
-        const customModal = document.getElementById('custom-modal');
-        const modalText = document.getElementById('modal-text');
-        const modalActions = document.getElementById('modal-actions');
+        document.addEventListener('DOMContentLoaded', () => {
+            const gamerTagInput = document.getElementById('gamer-tag');
+            const characterNameInput = document.getElementById('character-name');
+            const danSelect = document.getElementById('dan-select');
+            const pointsSelect = document.getElementById('points-select');
+            const addForm = document.getElementById('add-form');
+            const rankingBoard = document.getElementById('ranking-board');
+            const exportButton = document.getElementById('export-button');
+            const importButton = document.getElementById('import-button');
+            const importFileInput = document.getElementById('import-file');
+            const customModal = document.getElementById('custom-modal');
+            const modalText = document.getElementById('modal-text');
+            const modalActions = document.getElementById('modal-actions');
 
+            let players = JSON.parse(localStorage.getItem('danRankingPlayers')) || [];
 
-        let players = JSON.parse(localStorage.getItem('danRankingPlayers')) || [];
-        
-        // --- ANIMATION & RENDERING ---
+            // --- CUSTOM SELECT LOGIC ---
+            function createCustomSelect(selectElement) {
+                // Check if element exists before proceeding
+                if (!selectElement) return;
 
-        // A wrapper function to handle animations during updates
-        async function updateAndAnimateBoard() {
-            const firstPositions = new Map();
-            document.querySelectorAll('.player-row').forEach(el => {
-                firstPositions.set(el.id, el.getBoundingClientRect());
-            });
+                const wrapper = selectElement.parentElement;
+                
+                const trigger = document.createElement('div');
+                trigger.className = 'custom-select-trigger';
+                trigger.setAttribute('tabindex', '0');
 
-            renderBoard();
+                const selectedDisplay = document.createElement('span');
+                selectedDisplay.textContent = selectElement.options[selectElement.selectedIndex].textContent;
+                
+                const arrow = document.createElement('div');
+                arrow.className = 'custom-arrow';
 
-            await new Promise(resolve => requestAnimationFrame(resolve));
+                trigger.appendChild(selectedDisplay);
+                trigger.appendChild(arrow);
+                wrapper.appendChild(trigger);
+                
+                const optionsContainer = document.createElement('div');
+                optionsContainer.className = 'custom-options hidden';
+                
+                Array.from(selectElement.options).forEach(option => {
+                    const optionDiv = document.createElement('div');
+                    optionDiv.className = 'custom-option';
+                    optionDiv.textContent = option.textContent;
+                    optionDiv.dataset.value = option.value;
+                    
+                    if (option.selected) {
+                        optionDiv.classList.add('selected');
+                    }
 
-            document.querySelectorAll('.player-row').forEach(el => {
-                const lastPos = el.getBoundingClientRect();
-                const firstPos = firstPositions.get(el.id);
+                    optionDiv.addEventListener('click', () => {
+                        selectElement.value = option.value;
+                        selectedDisplay.textContent = option.textContent;
+                        
+                        // Update selected class
+                        optionsContainer.querySelectorAll('.custom-option').forEach(opt => opt.classList.remove('selected'));
+                        optionDiv.classList.add('selected');
+                        
+                        optionsContainer.classList.add('hidden');
+                    });
+                    optionsContainer.appendChild(optionDiv);
+                });
+                
+                wrapper.appendChild(optionsContainer);
+                
+                trigger.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    closeAllSelects(trigger);
+                    optionsContainer.classList.toggle('hidden');
+                });
+                 trigger.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        closeAllSelects(trigger);
+                        optionsContainer.classList.toggle('hidden');
+                    }
+                });
+            }
 
-                if (firstPos) { 
-                    const deltaX = firstPos.left - lastPos.left;
-                    const deltaY = firstPos.top - lastPos.top;
+            function closeAllSelects(except) {
+                document.querySelectorAll('.custom-select-wrapper').forEach(wrapper => {
+                    const trigger = wrapper.querySelector('.custom-select-trigger');
+                    const options = wrapper.querySelector('.custom-options');
+                    if (trigger !== except && options && !options.classList.contains('hidden')) {
+                        options.classList.add('hidden');
+                    }
+                });
+            }
 
-                    if (Math.abs(deltaX) > 0.5 || Math.abs(deltaY) > 0.5) {
-                        el.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
-                        el.style.transition = 'transform 0s'; 
+            document.addEventListener('click', closeAllSelects);
+            
+            createCustomSelect(danSelect);
+            createCustomSelect(pointsSelect);
+            
+            // --- ANIMATION & RENDERING ---
+            async function updateAndAnimateBoard() {
+                const firstPositions = new Map();
+                document.querySelectorAll('.player-row').forEach(el => {
+                    firstPositions.set(el.id, el.getBoundingClientRect());
+                });
 
+                renderBoard();
+
+                await new Promise(resolve => requestAnimationFrame(resolve));
+
+                document.querySelectorAll('.player-row').forEach(el => {
+                    const lastPos = el.getBoundingClientRect();
+                    const firstPos = firstPositions.get(el.id);
+
+                    if (firstPos) { 
+                        const deltaX = firstPos.left - lastPos.left;
+                        const deltaY = firstPos.top - lastPos.top;
+
+                        if (Math.abs(deltaX) > 0.5 || Math.abs(deltaY) > 0.5) {
+                            el.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
+                            el.style.transition = 'transform 0s'; 
+                            requestAnimationFrame(() => {
+                                el.style.removeProperty('transform');
+                                el.style.removeProperty('transition');
+                            });
+                        }
+                    } else {
+                        el.style.opacity = '0';
+                        el.style.transform = 'scale(0.95)';
                         requestAnimationFrame(() => {
-                            el.style.removeProperty('transform');
-                            el.style.removeProperty('transition');
+                            el.style.opacity = '1';
+                            el.style.transform = 'scale(1)';
                         });
                     }
-                } else {
-                    el.style.opacity = '0';
-                    el.style.transform = 'scale(0.95)';
-                    requestAnimationFrame(() => {
-                        el.style.opacity = '1';
-                        el.style.transform = 'scale(1)';
-                    });
-                }
-            });
-        }
-
-
-        // Main function to render the entire board
-        function renderBoard() {
-            rankingBoard.innerHTML = ''; 
-
-            if (players.length === 0) {
-                rankingBoard.innerHTML = `
-                    <div class="text-center py-10 bg-gray-900 border-2 border-gray-700">
-                        <h3 class="text-lg text-white">No Players Yet</h3>
-                        <p class="text-xs text-gray-400 mt-2">Add a player using the form above to get started!</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            const ranks = {};
-            for (let i = 1; i <= 10; i++) {
-                ranks[i] = [];
-            }
-            players.forEach(player => {
-                player.characters.forEach(character => {
-                    if (ranks[character.dan]) {
-                        ranks[character.dan].push({ ...character, playerName: player.name, playerId: player.id });
-                    }
                 });
-            });
-            
-            for (let dan = 10; dan >= 1; dan--) {
-                const charactersInRank = ranks[dan];
-                
-                charactersInRank.sort((a, b) => {
-                    if (b.points !== a.points) {
-                        return b.points - a.points;
-                    }
-                    return (a.sortOrder || 0) - (b.sortOrder || 0);
-                });
-
-                const section = document.createElement('section');
-                section.className = `dan-rank dan-${dan} bg-gray-900 p-4 sm:p-6`;
-                
-                const danNames = {
-                    1: "Shodan", 2: "Nidan", 3: "Sandan", 4: "Yondan", 5: "Godan",
-                    6: "Rokudan", 7: "Shichidan", 8: "Hachidan", 9: "Kyudan", 10: "Judan"
-                };
-                let headerText = `${dan} Dan (${danNames[dan] || ''})`;
-                
-                let characterListHTML = '<div class="text-center text-gray-500 italic py-4 text-xs">No characters at this rank.</div>';
-
-                if (charactersInRank.length > 0) {
-                    characterListHTML = charactersInRank.map((char, i, arr) => {
-                        const canMoveUp = i > 0 && arr[i-1].points === char.points;
-                        const canMoveDown = i < arr.length - 1 && arr[i+1].points === char.points;
-                        const characterId = `char-${char.playerId}-${char.name.replace(/[^a-zA-Z0-9]/g, '-')}`;
-
-                        return `
-                        <div id="${characterId}" class="player-row flex items-center justify-between bg-black p-3 mb-2 flex-wrap border-2 border-gray-800">
-                            <div class="flex-grow mb-2 sm:mb-0 mr-4">
-                                <p class="font-bold text-sm text-white">${char.playerName}</p>
-                                <p class="text-xs text-gray-300 mt-1">${char.name}</p>
-                            </div>
-                            <div class="flex items-center mx-4 my-2 sm:my-0">
-                                <span class="text-xs mr-2 text-gray-400">Points:</span>
-                                <span class="font-mono text-xl ${getPointsClass(char.points)}">${formatPoints(char.points)}</span>
-                            </div>
-                            <div class="flex items-center space-x-2">
-                                <button onclick="moveCharacter('${char.playerId}', '${char.name}', 'up')" class="bg-gray-700 hover:bg-gray-600 text-white font-bold w-8 h-8 transition duration-200 flex items-center justify-center text-xs btn" ${!canMoveUp ? 'disabled' : ''}>&uarr;</button>
-                                <button onclick="moveCharacter('${char.playerId}', '${char.name}', 'down')" class="bg-gray-700 hover:bg-gray-600 text-white font-bold w-8 h-8 transition duration-200 flex items-center justify-center text-xs btn" ${!canMoveDown ? 'disabled' : ''}>&darr;</button>
-                                <button onclick="updatePoints('${char.playerId}', '${char.name}', 1)" class="bg-teal-500 hover:bg-teal-600 text-white font-bold w-10 h-10 text-base transition duration-200 btn">+</button>
-                                <button onclick="updatePoints('${char.playerId}', '${char.name}', -1)" class="bg-rose-600 hover:bg-rose-700 text-white font-bold w-10 h-10 text-base transition duration-200 btn">-</button>
-                                <button onclick="promptDeleteCharacter('${char.playerId}', '${char.name}')" class="bg-gray-800 hover:bg-gray-700 text-white font-bold w-10 h-10 text-[10px] transition duration-200 btn">Del</button>
-                            </div>
-                        </div>
-                    `}).join('');
-                }
-
-                section.innerHTML = `
-                    <h2 class="text-xl font-bold text-white mb-4">${headerText}</h2>
-                    <div class="space-y-2">
-                        ${characterListHTML}
-                    </div>
-                `;
-                rankingBoard.appendChild(section);
             }
-        }
 
-        function getPointsClass(points) {
-            if (points > 0) return 'points-positive';
-            if (points < 0) return 'points-negative';
-            return 'points-neutral';
-        }
-
-        function formatPoints(points) {
-            return points > 0 ? `+${points}` : `${points}`;
-        }
-        
-        function savePlayers() {
-            localStorage.setItem('danRankingPlayers', JSON.stringify(players));
-        }
-        
-        // --- MODAL FUNCTIONS ---
-        function showModal(message, buttons) {
-            modalText.textContent = message;
-            modalActions.innerHTML = ''; // Clear old buttons
-
-            buttons.forEach(btnInfo => {
-                const button = document.createElement('button');
-                button.textContent = btnInfo.text;
-                button.className = btnInfo.classes;
-                button.onclick = () => {
-                    hideModal();
-                    if (btnInfo.onClick) {
-                        btnInfo.onClick();
-                    }
-                };
-                modalActions.appendChild(button);
-            });
-
-            customModal.classList.remove('hidden');
-        }
-
-        function hideModal() {
-            customModal.classList.add('hidden');
-        }
-        
-        // --- CORE LOGIC ---
-
-        addForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const gamerTag = gamerTagInput.value.trim();
-            const characterName = characterNameInput.value.trim();
-            if (!gamerTag || !characterName) return;
-
-            let player = players.find(p => p.name.toLowerCase() === gamerTag.toLowerCase());
-
-            if (player) {
-                const charExists = player.characters.some(c => c.name.toLowerCase() === characterName.toLowerCase());
-                if (charExists) {
-                    showModal('This character already exists for this player.', [
-                        { text: 'OK', classes: 'bg-yellow-500 hover:bg-yellow-600 text-black py-2 px-6 transition duration-200 text-xs btn' }
-                    ]);
+            function renderBoard() {
+                rankingBoard.innerHTML = ''; 
+                if (players.length === 0) {
+                    rankingBoard.innerHTML = `
+                        <div class="text-center py-10 bg-gray-900 border-2 border-gray-700">
+                            <h3 class="text-lg text-white">No Players Yet</h3>
+                            <p class="text-xs text-gray-400 mt-2">Add a player using the form above to get started!</p>
+                        </div>`;
                     return;
                 }
-                player.characters.push({ name: characterName, dan: 1, points: 0, sortOrder: Date.now() });
-            } else {
-                player = {
-                    id: crypto.randomUUID(),
-                    name: gamerTag,
-                    characters: [{ name: characterName, dan: 1, points: 0, sortOrder: Date.now() }]
-                };
-                players.push(player);
+                const ranks = {};
+                for (let i = 1; i <= 10; i++) ranks[i] = [];
+                players.forEach(player => {
+                    player.characters.forEach(character => {
+                        if (ranks[character.dan]) {
+                            ranks[character.dan].push({ ...character, playerName: player.name, playerId: player.id });
+                        }
+                    });
+                });
+                for (let dan = 10; dan >= 1; dan--) {
+                    const charactersInRank = ranks[dan];
+                    charactersInRank.sort((a, b) => b.points - a.points || (a.sortOrder || 0) - (b.sortOrder || 0));
+                    const section = document.createElement('section');
+                    section.className = `dan-rank dan-${dan} bg-gray-900 p-4 sm:p-6`;
+                    const danNames = { 1: "Shodan", 2: "Nidan", 3: "Sandan", 4: "Yondan", 5: "Godan", 6: "Rokudan", 7: "Shichidan", 8: "Hachidan", 9: "Kyudan", 10: "Judan" };
+                    let headerText = `${dan} Dan (${danNames[dan] || ''})`;
+                    let characterListHTML = '<div class="text-center text-gray-500 italic py-4 text-xs">No characters at this rank.</div>';
+                    if (charactersInRank.length > 0) {
+                        characterListHTML = charactersInRank.map((char, i, arr) => {
+                            const canMoveUp = i > 0 && arr[i-1].points === char.points;
+                            const canMoveDown = i < arr.length - 1 && arr[i+1].points === char.points;
+                            const characterId = `char-${char.playerId}-${char.name.replace(/[^a-zA-Z0-9]/g, '-')}`;
+                            return `
+                            <div id="${characterId}" class="player-row flex items-center justify-between bg-black p-3 mb-2 flex-wrap border-2 border-gray-800">
+                                <div class="flex-grow mb-2 sm:mb-0 mr-4">
+                                    <p class="font-bold text-sm text-white">${char.playerName}</p>
+                                    <p class="text-xs text-gray-300 mt-1">${char.name}</p>
+                                </div>
+                                <div class="flex items-center mx-4 my-2 sm:my-0">
+                                    <span class="text-xs mr-2 text-gray-400">Points:</span>
+                                    <span class="font-mono text-xl ${getPointsClass(char.points)}">${formatPoints(char.points)}</span>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <button onclick="window.app.moveCharacter('${char.playerId}', '${char.name}', 'up')" class="bg-gray-700 hover:bg-gray-600 text-white font-bold w-8 h-8 transition duration-200 flex items-center justify-center text-xs btn" ${!canMoveUp ? 'disabled' : ''}>&uarr;</button>
+                                    <button onclick="window.app.moveCharacter('${char.playerId}', '${char.name}', 'down')" class="bg-gray-700 hover:bg-gray-600 text-white font-bold w-8 h-8 transition duration-200 flex items-center justify-center text-xs btn" ${!canMoveDown ? 'disabled' : ''}>&darr;</button>
+                                    <button onclick="window.app.updatePoints('${char.playerId}', '${char.name}', 1)" class="bg-teal-500 hover:bg-teal-600 text-white font-bold w-10 h-10 text-base transition duration-200 btn">+</button>
+                                    <button onclick="window.app.updatePoints('${char.playerId}', '${char.name}', -1)" class="bg-rose-600 hover:bg-rose-700 text-white font-bold w-10 h-10 text-base transition duration-200 btn">-</button>
+                                    <button onclick="window.app.promptDeleteCharacter('${char.playerId}', '${char.name}')" class="bg-gray-800 hover:bg-gray-700 text-white font-bold w-10 h-10 text-[10px] transition duration-200 btn">Del</button>
+                                </div>
+                            </div>`;
+                        }).join('');
+                    }
+                    section.innerHTML = `<h2 class="text-xl font-bold text-white mb-4">${headerText}</h2><div class="space-y-2">${characterListHTML}</div>`;
+                    rankingBoard.appendChild(section);
+                }
             }
 
-            savePlayers();
-            updateAndAnimateBoard();
-            addForm.reset();
-        });
+            function getPointsClass(points) {
+                if (points > 0) return 'points-positive';
+                if (points < 0) return 'points-negative';
+                return 'points-neutral';
+            }
 
-        window.updatePoints = function(playerId, characterName, amount) {
-            const player = players.find(p => p.id === playerId);
-            if (!player) return;
-            const character = player.characters.find(c => c.name === characterName);
-            if (!character) return;
+            function formatPoints(points) {
+                return points > 0 ? `+${points}` : `${points}`;
+            }
+            
+            function savePlayers() {
+                localStorage.setItem('danRankingPlayers', JSON.stringify(players));
+            }
+            
+            function showModal(message, buttons) {
+                modalText.textContent = message;
+                modalActions.innerHTML = '';
+                buttons.forEach(btnInfo => {
+                    const button = document.createElement('button');
+                    button.textContent = btnInfo.text;
+                    button.className = btnInfo.classes;
+                    button.onclick = () => { hideModal(); if (btnInfo.onClick) btnInfo.onClick(); };
+                    modalActions.appendChild(button);
+                });
+                customModal.classList.remove('hidden');
+            }
 
-            character.points += amount;
+            function hideModal() {
+                customModal.classList.add('hidden');
+            }
+            
+            // --- CORE LOGIC ---
+            const app = {
+                updatePoints(playerId, characterName, amount) {
+                    const player = players.find(p => p.id === playerId);
+                    if (!player) return;
+                    const character = player.characters.find(c => c.name === characterName);
+                    if (!character) return;
+                    character.points += amount;
+                    if (character.points >= 3) {
+                        if (character.dan < 10) { character.dan++; character.points = 0; triggerConfetti(); } 
+                        else { character.points = 2; }
+                    }
+                    if (character.points <= -3) {
+                        if (character.dan > 1) { character.dan--; character.points = 0; } 
+                        else { character.points = -2; }
+                    }
+                    savePlayers();
+                    updateAndAnimateBoard();
+                },
+                moveCharacter(playerId, characterName, direction) {
+                    const player = players.find(p => p.id === playerId);
+                    if (!player) return;
+                    const sourceChar = player.characters.find(c => c.name === characterName);
+                    if (!sourceChar) return;
+                    const charactersInRank = players.flatMap(p => p.characters.map(char => ({...char, playerId: p.id}))).filter(char => char.dan === sourceChar.dan);
+                    charactersInRank.sort((a, b) => b.points - a.points || a.sortOrder - b.sortOrder);
+                    const sourceIndex = charactersInRank.findIndex(c => c.playerId === playerId && c.name === characterName);
+                    if (sourceIndex === -1) return;
+                    const targetIndex = direction === 'up' ? sourceIndex - 1 : sourceIndex + 1;
+                    if (targetIndex < 0 || targetIndex >= charactersInRank.length) return;
+                    const targetCharData = charactersInRank[targetIndex];
+                    if (sourceChar.points !== targetCharData.points) return;
+                    const targetPlayer = players.find(p => p.id === targetCharData.playerId);
+                    const targetChar = targetPlayer.characters.find(c => c.name === targetCharData.name);
+                    [sourceChar.sortOrder, targetChar.sortOrder] = [targetChar.sortOrder, sourceChar.sortOrder];
+                    savePlayers();
+                    updateAndAnimateBoard();
+                },
+                promptDeleteCharacter(playerId, characterName) {
+                    const player = players.find(p => p.id === playerId);
+                    if (!player) return;
+                    showModal(`Delete ${characterName} for player ${player.name}?`, [
+                        { text: 'Cancel', classes: 'bg-gray-700 hover:bg-gray-600 text-white py-2 px-6 transition duration-200 text-xs btn' },
+                        { text: 'Delete', classes: 'bg-rose-600 hover:bg-rose-700 text-white py-2 px-6 transition duration-200 text-xs btn', onClick: () => this.deleteCharacter(playerId, characterName) }
+                    ]);
+                },
+                deleteCharacter(playerId, characterName) {
+                    const playerIndex = players.findIndex(p => p.id === playerId);
+                    if (playerIndex === -1) return;
+                    players[playerIndex].characters = players[playerIndex].characters.filter(c => c.name !== characterName);
+                    if (players[playerIndex].characters.length === 0) players.splice(playerIndex, 1);
+                    savePlayers();
+                    updateAndAnimateBoard();
+                }
+            };
+            window.app = app;
 
-            if (character.points >= 3) {
-                if (character.dan < 10) {
-                    character.dan += 1;
-                    character.points = 0;
-                    triggerConfetti();
+            addForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const gamerTag = gamerTagInput.value.trim();
+                const characterName = characterNameInput.value.trim();
+                const selectedDan = parseInt(danSelect.value, 10);
+                const selectedPoints = parseInt(pointsSelect.value, 10);
+                if (!gamerTag || !characterName) return;
+                let player = players.find(p => p.name.toLowerCase() === gamerTag.toLowerCase());
+                if (player) {
+                    if (player.characters.some(c => c.name.toLowerCase() === characterName.toLowerCase())) {
+                        showModal('This character already exists for this player.', [{ text: 'OK', classes: 'bg-yellow-500 hover:bg-yellow-600 text-black py-2 px-6 transition duration-200 text-xs btn' }]);
+                        return;
+                    }
+                    player.characters.push({ name: characterName, dan: selectedDan, points: selectedPoints, sortOrder: Date.now() });
                 } else {
-                    character.points = 2;
+                    players.push({ id: crypto.randomUUID(), name: gamerTag, characters: [{ name: characterName, dan: selectedDan, points: selectedPoints, sortOrder: Date.now() }] });
                 }
-            }
-
-            if (character.points <= -3) {
-                if (character.dan > 1) {
-                    character.dan -= 1;
-                    character.points = 0;
-                } else {
-                    character.points = -2;
+                savePlayers();
+                updateAndAnimateBoard();
+                addForm.reset();
+                // Reset custom selects
+                danSelect.value = '1';
+                danSelect.parentElement.querySelector('.custom-select-trigger span').textContent = '1 Dan';
+                pointsSelect.value = '0';
+                pointsSelect.parentElement.querySelector('.custom-select-trigger span').textContent = '0';
+                
+                 document.querySelectorAll('.custom-options').forEach(container => {
+                    container.querySelectorAll('.custom-option').forEach(opt => opt.classList.remove('selected'));
+                    const defaultDan = container.querySelector('[data-value="1"]');
+                    if(defaultDan) defaultDan.classList.add('selected');
+                    const defaultPoints = container.querySelector('[data-value="0"]');
+                    if(defaultPoints) defaultPoints.classList.add('selected');
+                });
+            });
+            
+            // --- IMPORT/EXPORT FUNCTIONS ---
+            function executeExport() {
+                if (players.length === 0) {
+                     showModal('There is no data to export.', [{ text: 'OK', classes: 'bg-yellow-500 hover:bg-yellow-600 text-black py-2 px-6 transition duration-200 text-xs btn' }]);
+                    return;
                 }
+                const header = ['playerId', 'playerName', 'characterName', 'dan', 'points', 'sortOrder'];
+                const rows = players.flatMap(player => player.characters.map(character => [player.id, player.name, character.name, character.dan, character.points, character.sortOrder || Date.now()]));
+                let csvContent = "data:text/csv;charset=utf-8," + header.join(",") + "\n" + rows.map(e => e.join(",")).join("\n");
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", `ronin_dan_ranking_data.csv`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
             }
-            
-            savePlayers();
-            updateAndAnimateBoard();
-        }
-        
-        window.moveCharacter = function(playerId, characterName, direction) {
-            const player = players.find(p => p.id === playerId);
-            if (!player) return;
-            const sourceChar = player.characters.find(c => c.name === characterName);
-            if (!sourceChar) return;
-
-            const charactersInRank = players.flatMap(p => 
-                p.characters.map(char => ({...char, playerId: p.id}))
-            ).filter(char => char.dan === sourceChar.dan);
-            
-            charactersInRank.sort((a, b) => b.points - a.points || a.sortOrder - b.sortOrder);
-            
-            const sourceIndex = charactersInRank.findIndex(c => c.playerId === playerId && c.name === characterName);
-            if (sourceIndex === -1) return;
-
-            const targetIndex = direction === 'up' ? sourceIndex - 1 : sourceIndex + 1;
-            if (targetIndex < 0 || targetIndex >= charactersInRank.length) return;
-
-            const targetCharData = charactersInRank[targetIndex];
-            if (sourceChar.points !== targetCharData.points) {
-                console.error("Cannot move character with different points.");
-                return;
-            }
-            
-            const targetPlayer = players.find(p => p.id === targetCharData.playerId);
-            const targetChar = targetPlayer.characters.find(c => c.name === targetCharData.name);
-
-            [sourceChar.sortOrder, targetChar.sortOrder] = [targetChar.sortOrder, sourceChar.sortOrder];
-
-            savePlayers();
-            updateAndAnimateBoard();
-        }
-
-        window.promptDeleteCharacter = function(playerId, characterName) {
-            const player = players.find(p => p.id === playerId);
-            if (!player) return;
-            
-            showModal(`Delete ${characterName} for player ${player.name}?`, [
-                { text: 'Cancel', classes: 'bg-gray-700 hover:bg-gray-600 text-white py-2 px-6 transition duration-200 text-xs btn' },
-                { 
-                    text: 'Delete', 
-                    classes: 'bg-rose-600 hover:bg-rose-700 text-white py-2 px-6 transition duration-200 text-xs btn', 
-                    onClick: () => deleteCharacter(playerId, characterName)
-                }
-            ]);
-        }
-
-        function deleteCharacter(playerId, characterName) {
-            const playerIndex = players.findIndex(p => p.id === playerId);
-            if (playerIndex === -1) return;
-            const player = players[playerIndex];
-            player.characters = player.characters.filter(c => c.name !== characterName);
-
-            if (player.characters.length === 0) {
-                players.splice(playerIndex, 1);
-            }
-
-            savePlayers();
-            updateAndAnimateBoard();
-        }
-        
-        // --- IMPORT/EXPORT FUNCTIONS ---
-        function exportData() {
-            if (players.length === 0) {
-                 showModal('There is no data to export.', [
-                    { text: 'OK', classes: 'bg-yellow-500 hover:bg-yellow-600 text-black py-2 px-6 transition duration-200 text-xs btn' }
-                ]);
-                return;
-            }
-            const header = ['playerId', 'playerName', 'characterName', 'dan', 'points', 'sortOrder'];
-            const rows = players.flatMap(player => 
-                player.characters.map(character => [
-                    player.id, player.name, character.name, character.dan,
-                    character.points, character.sortOrder || Date.now()
-                ])
-            );
-            let csvContent = "data:text/csv;charset=utf-8," + header.join(",") + "\n" + rows.map(e => e.join(",")).join("\n");
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", `ronin_dan_ranking_data.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-
-        function importData(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const processFile = () => {
+            function handleFileImport(event) {
+                const file = event.target.files[0];
+                if (!file) return;
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     try {
                         const lines = e.target.result.trim().split('\n');
                         const header = lines.shift().trim().split(',');
-                        const sortOrderIndex = header.indexOf('sortOrder');
-                        if (header.indexOf('playerId') === -1) throw new Error("Invalid CSV format.");
-                        
-                        const importedPlayersMap = new Map();
-                        lines.forEach(line => {
-                            if (!line) return;
+                        const expectedHeader = ['playerId', 'playerName', 'characterName', 'dan', 'points', 'sortOrder'];
+                        if(JSON.stringify(header) !== JSON.stringify(expectedHeader)) throw new Error("Invalid CSV header format.");
+                        let isValid = true;
+                        const validatedRows = lines.map(line => {
+                            if (!line) return null;
                             const values = line.trim().split(',');
-                            const [playerId, playerName, characterName, dan, points] = values;
-                            const sortOrder = sortOrderIndex !== -1 ? (parseInt(values[sortOrderIndex], 10) || Date.now()) : Date.now();
-                            if (!importedPlayersMap.has(playerId)) {
-                                importedPlayersMap.set(playerId, { id: playerId, name: playerName, characters: [] });
-                            }
-                            importedPlayersMap.get(playerId).characters.push({ name: characterName, dan: parseInt(dan), points: parseInt(points), sortOrder });
+                            if (values.length !== expectedHeader.length) { isValid = false; return null; }
+                            const [dan, points, sortOrder] = [parseInt(values[3], 10), parseInt(values[4], 10), parseInt(values[5], 10)];
+                            if (isNaN(dan) || dan < 1 || dan > 10 || isNaN(points) || points < -2 || points > 2 || isNaN(sortOrder) || !values[0] || !values[1] || !values[2]) { isValid = false; return null; }
+                            return values;
+                        }).filter(Boolean);
+                        if (!isValid || validatedRows.length !== lines.filter(Boolean).length) throw new Error("CSV contains improperly formatted or invalid data.");
+                        const importedPlayersMap = new Map();
+                        validatedRows.forEach(values => {
+                            const [playerId, playerName, characterName, dan, points, sortOrder] = values;
+                            if (!importedPlayersMap.has(playerId)) importedPlayersMap.set(playerId, { id: playerId, name: playerName, characters: [] });
+                            importedPlayersMap.get(playerId).characters.push({ name: characterName, dan: parseInt(dan), points: parseInt(points), sortOrder: parseInt(sortOrder) });
                         });
                         players = Array.from(importedPlayersMap.values());
                         savePlayers();
@@ -513,67 +590,64 @@
                         showModal('Data imported successfully!', [{ text: 'OK', classes: 'bg-yellow-500 hover:bg-yellow-600 text-black py-2 px-6 transition duration-200 text-xs btn' }]);
                     } catch (error) {
                         console.error("Error parsing CSV:", error);
-                        showModal('Failed to import CSV. Check console for details.', [{ text: 'OK', classes: 'bg-yellow-500 hover:bg-yellow-600 text-black py-2 px-6 transition duration-200 text-xs btn' }]);
+                        showModal('Import failed. The selected file is improperly formatted or contains invalid data.', [{ text: 'OK', classes: 'bg-rose-600 hover:bg-rose-700 text-white py-2 px-6 transition duration-200 text-xs btn' }]);
                     } finally {
                         importFileInput.value = "";
                     }
                 };
                 reader.readAsText(file);
             };
-
-            showModal('This will overwrite all current data. Are you sure?', [
-                { text: 'Cancel', classes: 'bg-gray-700 hover:bg-gray-600 text-white py-2 px-6 transition duration-200 text-xs btn', onClick: () => { importFileInput.value = ""; } },
-                { text: 'Import', classes: 'bg-rose-600 hover:bg-rose-700 text-white py-2 px-6 transition duration-200 text-xs btn', onClick: processFile }
-            ]);
-        }
-
-        exportButton.addEventListener('click', exportData);
-        importButton.addEventListener('click', () => importFileInput.click());
-        importFileInput.addEventListener('change', importData);
-
-        // --- CONFETTI EFFECT ---
-        const confettiCanvas = document.getElementById('confetti-canvas');
-        const confettiCtx = confettiCanvas.getContext('2d');
-        let confettiPieces = [];
-        const confettiColors = ['#facc15', '#f43f5e', '#4f46e5', '#22d3ee'];
-        function resizeCanvas() { confettiCanvas.width = window.innerWidth; confettiCanvas.height = window.innerHeight; }
-        function triggerConfetti() {
-            confettiPieces = [];
-            for (let i = 0; i < 150; i++) confettiPieces.push(createConfettiPiece());
-        }
-        function createConfettiPiece() {
-            const w = Math.random() * 8 + 4;
-            const h = Math.random() * 4 + 3;
-            return {
-                x: Math.random() * confettiCanvas.width, y: -20, w, h,
-                color: confettiColors[Math.floor(Math.random() * confettiColors.length)],
-                vx: (Math.random() - 0.5) * 4, vy: Math.random() * 2 + 2,
-                angle: Math.random() * Math.PI * 2, spin: (Math.random() - 0.5) * 0.2
-            };
-        }
-        function drawConfetti() {
-            confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
-            confettiPieces.forEach(p => {
-                p.y += p.vy; p.x += p.vx; p.angle += p.spin;
-                confettiCtx.save();
-                confettiCtx.translate(p.x, p.y);
-                confettiCtx.rotate(p.angle);
-                confettiCtx.fillStyle = p.color;
-                confettiCtx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
-                confettiCtx.restore();
+            exportButton.addEventListener('click', () => {
+                 showModal('Save the current ranking board to a .csv file?', [
+                    { text: 'Cancel', classes: 'bg-gray-700 hover:bg-gray-600 text-white py-2 px-6 transition duration-200 text-xs btn' },
+                    { text: 'Save', classes: 'bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-6 transition duration-200 text-xs btn', onClick: executeExport }
+                ]);
             });
-            confettiPieces = confettiPieces.filter(p => p.y < confettiCanvas.height + 20);
-        }
-        function animateConfetti() {
-            if (confettiPieces.length > 0) drawConfetti();
-            requestAnimationFrame(animateConfetti);
-        }
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
-        animateConfetti();
+            importButton.addEventListener('click', () => {
+                showModal('This will overwrite all current data.', [
+                    { text: 'Cancel', classes: 'bg-gray-700 hover:bg-gray-600 text-white py-2 px-6 transition duration-200 text-xs btn' },
+                    { text: 'Import', classes: 'bg-yellow-500 hover:bg-yellow-600 text-black py-2 px-6 transition duration-200 text-xs btn', onClick: () => importFileInput.click() }
+                ]);
+            });
+            importFileInput.addEventListener('change', handleFileImport);
 
-        // Initial render on page load
-        updateAndAnimateBoard();
+            // --- CONFETTI EFFECT ---
+            const confettiCanvas = document.getElementById('confetti-canvas');
+            const confettiCtx = confettiCanvas.getContext('2d');
+            let confettiPieces = [];
+            const confettiColors = ['#facc15', '#f43f5e', '#4f46e5', '#22d3ee'];
+            function resizeCanvas() { confettiCanvas.width = window.innerWidth; confettiCanvas.height = window.innerHeight; }
+            function triggerConfetti() {
+                confettiPieces = [];
+                for (let i = 0; i < 150; i++) confettiPieces.push(createConfettiPiece());
+            }
+            function createConfettiPiece() {
+                const w = Math.random() * 8 + 4;
+                const h = Math.random() * 4 + 3;
+                return { x: Math.random() * confettiCanvas.width, y: -20, w, h, color: confettiColors[Math.floor(Math.random() * confettiColors.length)], vx: (Math.random() - 0.5) * 4, vy: Math.random() * 2 + 2, angle: Math.random() * Math.PI * 2, spin: (Math.random() - 0.5) * 0.2 };
+            }
+            function drawConfetti() {
+                confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+                confettiPieces.forEach(p => {
+                    p.y += p.vy; p.x += p.vx; p.angle += p.spin;
+                    confettiCtx.save();
+                    confettiCtx.translate(p.x, p.y);
+                    confettiCtx.rotate(p.angle);
+                    confettiCtx.fillStyle = p.color;
+                    confettiCtx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+                    confettiCtx.restore();
+                });
+                confettiPieces = confettiPieces.filter(p => p.y < confettiCanvas.height + 20);
+            }
+            function animateConfetti() {
+                if (confettiPieces.length > 0) drawConfetti();
+                requestAnimationFrame(animateConfetti);
+            }
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+            animateConfetti();
+            updateAndAnimateBoard();
+        });
     </script>
 </body>
 </html>
