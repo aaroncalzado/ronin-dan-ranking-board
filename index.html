@@ -141,6 +141,17 @@
         </footer>
     </div>
 
+    <!-- Custom Modal -->
+    <div id="custom-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+        <div class="bg-gray-900 border-2 border-rose-500 p-8 text-center max-w-sm w-full">
+            <p id="modal-text" class="mb-6 text-sm leading-relaxed">Are you sure?</p>
+            <div id="modal-actions" class="flex justify-center gap-4">
+                <!-- Buttons are dynamically added here -->
+            </div>
+        </div>
+    </div>
+
+
     <script>
         const gamerTagInput = document.getElementById('gamer-tag');
         const characterNameInput = document.getElementById('character-name');
@@ -149,6 +160,11 @@
         const exportButton = document.getElementById('export-button');
         const importButton = document.getElementById('import-button');
         const importFileInput = document.getElementById('import-file');
+        // Modal elements
+        const customModal = document.getElementById('custom-modal');
+        const modalText = document.getElementById('modal-text');
+        const modalActions = document.getElementById('modal-actions');
+
 
         let players = JSON.parse(localStorage.getItem('danRankingPlayers')) || [];
         
@@ -157,39 +173,32 @@
         // A wrapper function to handle animations during updates
         async function updateAndAnimateBoard() {
             const firstPositions = new Map();
-            // First, get the initial positions of all player rows
             document.querySelectorAll('.player-row').forEach(el => {
                 firstPositions.set(el.id, el.getBoundingClientRect());
             });
 
-            // Re-render the board with the new data
             renderBoard();
 
-            // Allow the DOM to update but wait for the next frame before animating
-            // This is key to making the FLIP technique work
             await new Promise(resolve => requestAnimationFrame(resolve));
 
-            // Last, Invert, Play
             document.querySelectorAll('.player-row').forEach(el => {
                 const lastPos = el.getBoundingClientRect();
                 const firstPos = firstPositions.get(el.id);
 
-                if (firstPos) { // This row existed before the render
+                if (firstPos) { 
                     const deltaX = firstPos.left - lastPos.left;
                     const deltaY = firstPos.top - lastPos.top;
 
-                    // If the element moved, invert its position then play the animation
                     if (Math.abs(deltaX) > 0.5 || Math.abs(deltaY) > 0.5) {
                         el.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
-                        el.style.transition = 'transform 0s'; // No transition on the inversion
+                        el.style.transition = 'transform 0s'; 
 
-                        // In the next frame, remove the transform to animate it back to its new position
                         requestAnimationFrame(() => {
                             el.style.removeProperty('transform');
                             el.style.removeProperty('transition');
                         });
                     }
-                } else { // This is a new row, animate its appearance
+                } else {
                     el.style.opacity = '0';
                     el.style.transform = 'scale(0.95)';
                     requestAnimationFrame(() => {
@@ -203,7 +212,7 @@
 
         // Main function to render the entire board
         function renderBoard() {
-            rankingBoard.innerHTML = ''; // Clear the board before rendering
+            rankingBoard.innerHTML = ''; 
 
             if (players.length === 0) {
                 rankingBoard.innerHTML = `
@@ -227,7 +236,6 @@
                 });
             });
             
-            // Loop backwards to display 10 Dan (Highest) first
             for (let dan = 10; dan >= 1; dan--) {
                 const charactersInRank = ranks[dan];
                 
@@ -253,30 +261,24 @@
                     characterListHTML = charactersInRank.map((char, i, arr) => {
                         const canMoveUp = i > 0 && arr[i-1].points === char.points;
                         const canMoveDown = i < arr.length - 1 && arr[i+1].points === char.points;
-                        // Create a stable, unique ID for each player row for animation tracking
                         const characterId = `char-${char.playerId}-${char.name.replace(/[^a-zA-Z0-9]/g, '-')}`;
 
                         return `
                         <div id="${characterId}" class="player-row flex items-center justify-between bg-black p-3 mb-2 flex-wrap border-2 border-gray-800">
-                            <!-- Player and Character Info -->
                             <div class="flex-grow mb-2 sm:mb-0 mr-4">
                                 <p class="font-bold text-sm text-white">${char.playerName}</p>
                                 <p class="text-xs text-gray-300 mt-1">${char.name}</p>
                             </div>
-
-                            <!-- Points Display -->
                             <div class="flex items-center mx-4 my-2 sm:my-0">
                                 <span class="text-xs mr-2 text-gray-400">Points:</span>
                                 <span class="font-mono text-xl ${getPointsClass(char.points)}">${formatPoints(char.points)}</span>
                             </div>
-
-                            <!-- Action Buttons -->
                             <div class="flex items-center space-x-2">
                                 <button onclick="moveCharacter('${char.playerId}', '${char.name}', 'up')" class="bg-gray-700 hover:bg-gray-600 text-white font-bold w-8 h-8 transition duration-200 flex items-center justify-center text-xs btn" ${!canMoveUp ? 'disabled' : ''}>&uarr;</button>
                                 <button onclick="moveCharacter('${char.playerId}', '${char.name}', 'down')" class="bg-gray-700 hover:bg-gray-600 text-white font-bold w-8 h-8 transition duration-200 flex items-center justify-center text-xs btn" ${!canMoveDown ? 'disabled' : ''}>&darr;</button>
                                 <button onclick="updatePoints('${char.playerId}', '${char.name}', 1)" class="bg-teal-500 hover:bg-teal-600 text-white font-bold w-10 h-10 text-base transition duration-200 btn">+</button>
                                 <button onclick="updatePoints('${char.playerId}', '${char.name}', -1)" class="bg-rose-600 hover:bg-rose-700 text-white font-bold w-10 h-10 text-base transition duration-200 btn">-</button>
-                                <button onclick="deleteCharacter('${char.playerId}', '${char.name}')" class="bg-gray-800 hover:bg-gray-700 text-white font-bold w-10 h-10 text-[10px] transition duration-200 btn">Del</button>
+                                <button onclick="promptDeleteCharacter('${char.playerId}', '${char.name}')" class="bg-gray-800 hover:bg-gray-700 text-white font-bold w-10 h-10 text-[10px] transition duration-200 btn">Del</button>
                             </div>
                         </div>
                     `}).join('');
@@ -305,6 +307,33 @@
         function savePlayers() {
             localStorage.setItem('danRankingPlayers', JSON.stringify(players));
         }
+        
+        // --- MODAL FUNCTIONS ---
+        function showModal(message, buttons) {
+            modalText.textContent = message;
+            modalActions.innerHTML = ''; // Clear old buttons
+
+            buttons.forEach(btnInfo => {
+                const button = document.createElement('button');
+                button.textContent = btnInfo.text;
+                button.className = btnInfo.classes;
+                button.onclick = () => {
+                    hideModal();
+                    if (btnInfo.onClick) {
+                        btnInfo.onClick();
+                    }
+                };
+                modalActions.appendChild(button);
+            });
+
+            customModal.classList.remove('hidden');
+        }
+
+        function hideModal() {
+            customModal.classList.add('hidden');
+        }
+        
+        // --- CORE LOGIC ---
 
         addForm.addEventListener('submit', (e) => {
             e.preventDefault();
@@ -317,7 +346,9 @@
             if (player) {
                 const charExists = player.characters.some(c => c.name.toLowerCase() === characterName.toLowerCase());
                 if (charExists) {
-                    alert('This character already exists for this player.');
+                    showModal('This character already exists for this player.', [
+                        { text: 'OK', classes: 'bg-yellow-500 hover:bg-yellow-600 text-black py-2 px-6 transition duration-200 text-xs btn' }
+                    ]);
                     return;
                 }
                 player.characters.push({ name: characterName, dan: 1, points: 0, sortOrder: Date.now() });
@@ -343,23 +374,21 @@
 
             character.points += amount;
 
-            // Rank Up logic (e.g., 1 Dan -> 2 Dan)
             if (character.points >= 3) {
-                if (character.dan < 10) { // Can rank up if not max rank
+                if (character.dan < 10) {
                     character.dan += 1;
                     character.points = 0;
                     triggerConfetti();
-                } else { // At max rank, cap points
+                } else {
                     character.points = 2;
                 }
             }
 
-            // De-rank logic (e.g., 2 Dan -> 1 Dan)
             if (character.points <= -3) {
-                if (character.dan > 1) { // Can de-rank if not min rank
+                if (character.dan > 1) {
                     character.dan -= 1;
                     character.points = 0;
-                } else { // At min rank, cap points
+                } else {
                     character.points = -2;
                 }
             }
@@ -401,10 +430,21 @@
             updateAndAnimateBoard();
         }
 
-        window.deleteCharacter = function(playerId, characterName) {
-            if (!confirm(`Are you sure you want to delete ${characterName} for this player?`)) {
-                return;
-            }
+        window.promptDeleteCharacter = function(playerId, characterName) {
+            const player = players.find(p => p.id === playerId);
+            if (!player) return;
+            
+            showModal(`Delete ${characterName} for player ${player.name}?`, [
+                { text: 'Cancel', classes: 'bg-gray-700 hover:bg-gray-600 text-white py-2 px-6 transition duration-200 text-xs btn' },
+                { 
+                    text: 'Delete', 
+                    classes: 'bg-rose-600 hover:bg-rose-700 text-white py-2 px-6 transition duration-200 text-xs btn', 
+                    onClick: () => deleteCharacter(playerId, characterName)
+                }
+            ]);
+        }
+
+        function deleteCharacter(playerId, characterName) {
             const playerIndex = players.findIndex(p => p.id === playerId);
             if (playerIndex === -1) return;
             const player = players[playerIndex];
@@ -421,7 +461,9 @@
         // --- IMPORT/EXPORT FUNCTIONS ---
         function exportData() {
             if (players.length === 0) {
-                alert("There is no data to export.");
+                 showModal('There is no data to export.', [
+                    { text: 'OK', classes: 'bg-yellow-500 hover:bg-yellow-600 text-black py-2 px-6 transition duration-200 text-xs btn' }
+                ]);
                 return;
             }
             const header = ['playerId', 'playerName', 'characterName', 'dan', 'points', 'sortOrder'];
@@ -444,40 +486,45 @@
         function importData(event) {
             const file = event.target.files[0];
             if (!file) return;
-            if (!confirm("Are you sure you want to import this file? This will overwrite all current data.")) {
-                importFileInput.value = ""; return;
-            }
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const lines = e.target.result.trim().split('\n');
-                    const header = lines.shift().trim().split(',');
-                    const sortOrderIndex = header.indexOf('sortOrder');
-                    if (header.indexOf('playerId') === -1) throw new Error("Invalid CSV format.");
-                    
-                    const importedPlayersMap = new Map();
-                    lines.forEach(line => {
-                        if (!line) return;
-                        const values = line.trim().split(',');
-                        const [playerId, playerName, characterName, dan, points] = values;
-                        const sortOrder = sortOrderIndex !== -1 ? (parseInt(values[sortOrderIndex], 10) || Date.now()) : Date.now();
-                        if (!importedPlayersMap.has(playerId)) {
-                            importedPlayersMap.set(playerId, { id: playerId, name: playerName, characters: [] });
-                        }
-                        importedPlayersMap.get(playerId).characters.push({ name: characterName, dan: parseInt(dan), points: parseInt(points), sortOrder });
-                    });
-                    players = Array.from(importedPlayersMap.values());
-                    savePlayers();
-                    updateAndAnimateBoard();
-                    alert("Data imported successfully!");
-                } catch (error) {
-                    console.error("Error parsing CSV:", error);
-                    alert("Failed to import CSV.");
-                } finally {
-                    importFileInput.value = "";
-                }
+
+            const processFile = () => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const lines = e.target.result.trim().split('\n');
+                        const header = lines.shift().trim().split(',');
+                        const sortOrderIndex = header.indexOf('sortOrder');
+                        if (header.indexOf('playerId') === -1) throw new Error("Invalid CSV format.");
+                        
+                        const importedPlayersMap = new Map();
+                        lines.forEach(line => {
+                            if (!line) return;
+                            const values = line.trim().split(',');
+                            const [playerId, playerName, characterName, dan, points] = values;
+                            const sortOrder = sortOrderIndex !== -1 ? (parseInt(values[sortOrderIndex], 10) || Date.now()) : Date.now();
+                            if (!importedPlayersMap.has(playerId)) {
+                                importedPlayersMap.set(playerId, { id: playerId, name: playerName, characters: [] });
+                            }
+                            importedPlayersMap.get(playerId).characters.push({ name: characterName, dan: parseInt(dan), points: parseInt(points), sortOrder });
+                        });
+                        players = Array.from(importedPlayersMap.values());
+                        savePlayers();
+                        updateAndAnimateBoard();
+                        showModal('Data imported successfully!', [{ text: 'OK', classes: 'bg-yellow-500 hover:bg-yellow-600 text-black py-2 px-6 transition duration-200 text-xs btn' }]);
+                    } catch (error) {
+                        console.error("Error parsing CSV:", error);
+                        showModal('Failed to import CSV. Check console for details.', [{ text: 'OK', classes: 'bg-yellow-500 hover:bg-yellow-600 text-black py-2 px-6 transition duration-200 text-xs btn' }]);
+                    } finally {
+                        importFileInput.value = "";
+                    }
+                };
+                reader.readAsText(file);
             };
-            reader.readAsText(file);
+
+            showModal('This will overwrite all current data. Are you sure?', [
+                { text: 'Cancel', classes: 'bg-gray-700 hover:bg-gray-600 text-white py-2 px-6 transition duration-200 text-xs btn', onClick: () => { importFileInput.value = ""; } },
+                { text: 'Import', classes: 'bg-rose-600 hover:bg-rose-700 text-white py-2 px-6 transition duration-200 text-xs btn', onClick: processFile }
+            ]);
         }
 
         exportButton.addEventListener('click', exportData);
