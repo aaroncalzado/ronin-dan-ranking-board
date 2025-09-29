@@ -114,6 +114,38 @@
         .player-row {
             transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55), opacity 0.3s ease;
         }
+        /* Rules Modal Specific Styles */
+        #rules-content h2 {
+            font-size: 1.125rem; /* text-lg */
+            color: #facc15; /* yellow-400 */
+            margin-top: 1.5rem; /* mt-6 */
+            margin-bottom: 1rem; /* mb-4 */
+            padding-bottom: 0.5rem; /* pb-2 */
+            border-bottom: 2px solid #4f46e5; /* indigo-700 */
+        }
+         #rules-content h2:first-child {
+            margin-top: 0;
+        }
+        #rules-content p, #rules-content li {
+            font-size: 0.75rem; /* text-xs */
+            line-height: 1.6; /* leading-relaxed */
+            color: #d1d5db; /* gray-300 */
+            margin-bottom: 1rem;
+        }
+        #rules-content ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        #rules-content li {
+            padding-left: 1.5rem;
+            position: relative;
+        }
+        #rules-content li::before {
+            content: '»';
+            position: absolute;
+            left: 0;
+            color: #f43f5e; /* rose-500 */
+        }
     </style>
 </head>
 <body class="p-4 sm:p-6 md:p-8">
@@ -140,9 +172,13 @@
         </header>
 
         <div class="space-y-8 mb-8">
+            <div class="text-center">
+                 <a href="#" id="rules-link" class="text-rose-500 hover:text-rose-400 text-xs hover:underline">How to run a Dan ranking event</a>
+            </div>
+            
             <!-- Add Player/Character Form -->
             <div class="bg-gray-900 p-6 border-2 border-rose-500">
-                <h2 class="text-xl font-semibold text-rose-500 mb-4">Add Player/Character</h2>
+                <h2 class="text-xl font-semibold text-rose-500 mb-2">Add Player/Character</h2>
                 <p class="text-[10px] text-gray-500 mb-4">Default rank is 1 Dan with 0 points. If a Gamer Tag exists, a different character must be added.</p>
                 <form id="add-form" class="flex flex-col gap-4">
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -161,7 +197,7 @@
                             <label for="dan-select" class="block text-xs font-medium text-gray-300 mb-2">Rank</label>
                             <div class="custom-select-wrapper mt-1">
                                 <select id="dan-select" class="hidden">
-                                    <option value="1">1 Dan</option>
+                                    <option value="1" selected>1 Dan</option>
                                     <option value="2">2 Dan</option>
                                     <option value="3">3 Dan</option>
                                     <option value="4">4 Dan</option>
@@ -187,8 +223,8 @@
                             </div>
                         </div>
                     </div>
-                    <div class="flex justify-end mt-2">
-                        <button type="submit" class="w-64 text-center bg-rose-600 hover:bg-rose-700 text-white py-2 px-6 transition duration-200 text-xs btn">Add Entry</button>
+                    <div class="mt-2">
+                        <button type="submit" class="w-full bg-rose-600 hover:bg-rose-700 text-white py-2 px-6 transition duration-200 text-xs btn">Add Entry</button>
                     </div>
                 </form>
             </div>
@@ -196,8 +232,8 @@
             <!-- Import/Export Section -->
             <div class="flex justify-end gap-4">
                 <input type="file" id="import-file" class="hidden" accept=".csv">
-                <button id="export-button" class="w-64 text-center bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-6 transition duration-200 text-xs btn">Export Data (CSV)</button>
-                <button id="import-button" class="w-64 text-center bg-yellow-500 hover:bg-yellow-600 text-black py-2 px-6 transition duration-200 text-xs btn">Import Data (CSV)</button>
+                <button id="export-button" class="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-6 transition duration-200 text-xs btn">Export Data (CSV)</button>
+                <button id="import-button" class="bg-yellow-500 hover:bg-yellow-600 text-black py-2 px-6 transition duration-200 text-xs btn">Import Data (CSV)</button>
             </div>
         </div>
 
@@ -226,6 +262,52 @@
             </div>
         </div>
     </div>
+    
+    <!-- Rules Modal -->
+    <div id="rules-modal" class="hidden fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-4">
+        <div class="bg-black border-2 border-yellow-400 p-6 sm:p-8 max-w-3xl w-full h-[90vh] flex flex-col">
+            <h1 class="text-2xl font-bold text-yellow-400 mb-4 text-center">Official Ruleset</h1>
+            <div id="rules-content" class="flex-grow overflow-y-auto pr-4 text-left">
+                <h2>1. Objective</h2>
+                <p>The Rōnin Dan Board is designed to provide a structured, competitive ranking system for local scenes. The primary goal is to progress through the Dan ranks, from Shodan (1 Dan) to Judan (10 Dan), by competing against other players in sanctioned ranking events.</p>
+                
+                <h2>2. Event Eligibility: "The Gauntlet"</h2>
+                <ul>
+                    <li><strong>The "One Rank" Rule:</strong> A ranking event can only include players who are, at most, one Dan rank above or below the <strong>majority Dan rank</strong> of the participants.</li>
+                    <li><strong>Example:</strong> If an event has five 3 Dan players, two 4 Dan players, and one 2 Dan player, the event is valid because all participants are within one rank of the majority (3 Dan). However, a 5 Dan player or a 1 Dan player could not join this event.</li>
+                    <li><strong>Purpose:</strong> This rule prevents high-ranked players from "farming" points from lower-ranked players and ensures that every match is a meaningful challenge.</li>
+                </ul>
+
+                <h2>3. Match Flow & Point System</h2>
+                 <ul>
+                    <li><strong>Starting Order:</strong> The event begins with the top two players listed in the current Dan rank order. The highest-ranked player plays first.</li>
+                    <li><strong>Point Distribution:</strong> The winner of a match receives +1 point. The loser of a match receives -1 point.</li>
+                    <li><strong>Winner Stays On:</strong> The winner of the match continues to play, facing the next player down the list in the event's player order.</li>
+                    <li><strong>Loser Rotates:</strong> The loser of a match is moved to the very bottom of the event's player order rotation. They will play again once their turn comes up.</li>
+                    <li><strong>Character Lock:</strong> Each entry on the Dan board represents a specific player-character combination. Players are permanently locked to the character associated with that entry for all matches.</li>
+                    <li><strong>Handling Draws:</strong> In the event of a draw, no points are awarded. Both players can agree to either replay the match immediately or both move to the back of the player rotation.</li>
+                    <li><strong>Player Readiness:</strong> A player must be present within three (3) minutes of their match being called. Failure to appear will result in a forfeiture of the match and a loss of -1 point.</li>
+                    <li><strong>Disputes:</strong> A designated Tournament Organizer (T.O.) has the final say in all rule interpretations and disputes.</li>
+                </ul>
+
+                <h2>4. Ranking Up (Promotion)</h2>
+                <ul>
+                    <li><strong>Promotion Threshold:</strong> A player who reaches <strong>+3 points</strong> is immediately promoted to the next Dan rank.</li>
+                    <li><strong>Points Reset:</strong> Upon promotion, the player's points are reset to 0.</li>
+                    <li><strong>Gauntlet Reset:</strong> As soon as a player is promoted, the current Gauntlet event immediately <strong>ends and resets</strong>. The board order is updated, and a new Gauntlet can begin with the next two players in the new order.</li>
+                </ul>
+                
+                <h2>5. Ranking Down (Demotion)</h2>
+                <ul>
+                    <li><strong>Demotion Threshold:</strong> A player who reaches <strong>-3 points</strong> is immediately demoted to the Dan rank below.</li>
+                    <li><strong>Points Reset:</strong> Upon demotion, the player's points are also reset to 0.</li>
+                </ul>
+            </div>
+             <div class="mt-6 text-center">
+                <button id="close-rules-modal" class="bg-yellow-500 hover:bg-yellow-600 text-black py-2 px-8 transition duration-200 text-xs btn">Close</button>
+            </div>
+        </div>
+    </div>
 
 
     <script>
@@ -239,9 +321,15 @@
             const exportButton = document.getElementById('export-button');
             const importButton = document.getElementById('import-button');
             const importFileInput = document.getElementById('import-file');
+            
+            // Modals
             const customModal = document.getElementById('custom-modal');
             const modalText = document.getElementById('modal-text');
             const modalActions = document.getElementById('modal-actions');
+            const rulesModal = document.getElementById('rules-modal');
+            const rulesLink = document.getElementById('rules-link');
+            const closeRulesModalButton = document.getElementById('close-rules-modal');
+
 
             let players = JSON.parse(localStorage.getItem('danRankingPlayers')) || [];
 
@@ -610,6 +698,21 @@
                 ]);
             });
             importFileInput.addEventListener('change', handleFileImport);
+            
+            // Rules Modal Listeners
+            rulesLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                rulesModal.classList.remove('hidden');
+            });
+            closeRulesModalButton.addEventListener('click', () => {
+                rulesModal.classList.add('hidden');
+            });
+             rulesModal.addEventListener('click', (e) => {
+                if (e.target === rulesModal) {
+                    rulesModal.classList.add('hidden');
+                }
+            });
+
 
             // --- CONFETTI EFFECT ---
             const confettiCanvas = document.getElementById('confetti-canvas');
