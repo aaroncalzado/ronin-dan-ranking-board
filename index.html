@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rōnin Dan Ranking Board</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
@@ -88,7 +89,7 @@
             padding: 0.75rem;
             font-size: 0.75rem; /* text-xs */
             cursor: pointer;
-            transition: background-color 0.2s;
+            transition: background-color: 0.2s;
         }
         .custom-option:hover, .custom-option.selected {
             background-color: #f43f5e; /* rose-500 */
@@ -111,11 +112,11 @@
             z-index: 9999;
         }
         /* Animation class for player rows */
-        .player-row {
+        .player-row-wrapper {
             transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55), opacity 0.3s ease;
         }
-        /* Rules Modal Specific Styles */
-        #rules-content h2 {
+        /* Modal Content Styles */
+        .modal-content-area h2 {
             font-size: 1.125rem; /* text-lg */
             color: #facc15; /* yellow-400 */
             margin-top: 1.5rem; /* mt-6 */
@@ -123,28 +124,55 @@
             padding-bottom: 0.5rem; /* pb-2 */
             border-bottom: 2px solid #4f46e5; /* indigo-700 */
         }
-         #rules-content h2:first-child {
+         .modal-content-area h2:first-child {
             margin-top: 0;
         }
-        #rules-content p, #rules-content li {
+        .modal-content-area p, .modal-content-area li {
             font-size: 0.75rem; /* text-xs */
             line-height: 1.6; /* leading-relaxed */
             color: #d1d5db; /* gray-300 */
             margin-bottom: 1rem;
         }
-        #rules-content ul {
+        .modal-content-area ul {
             list-style-type: none;
             padding-left: 0;
         }
-        #rules-content li {
+        .modal-content-area li {
             padding-left: 1.5rem;
             position: relative;
         }
-        #rules-content li::before {
+        .modal-content-area li::before {
             content: '»';
             position: absolute;
             left: 0;
             color: #f43f5e; /* rose-500 */
+        }
+        /* Accordion Styles */
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-out, padding 0.5s ease-out;
+            padding-top: 0;
+            padding-bottom: 0;
+        }
+        .accordion-content.open {
+             max-height: 320px;
+             padding-top: 1rem;
+             padding-bottom: 2rem; 
+        }
+        .accordion-toggle svg {
+            transition: transform 0.3s ease;
+        }
+        .accordion-toggle.open svg {
+            transform: rotate(90deg);
+        }
+
+        /* Match Selection Styles */
+        .player-row-wrapper.selected-p1 {
+            box-shadow: 0 0 0 3px #22d3ee;
+        }
+        .player-row-wrapper.selected-p2 {
+            box-shadow: 0 0 0 3px #f43f5e;
         }
     </style>
 </head>
@@ -172,8 +200,10 @@
         </header>
 
         <div class="space-y-8 mb-8">
-            <div class="text-center">
+            <div class="text-center space-y-2">
                  <a href="#" id="rules-link" class="text-rose-500 hover:text-rose-400 text-xs hover:underline">How to run a Dan ranking event</a>
+                 <br>
+                 <a href="#" id="usage-link" class="text-indigo-400 hover:text-indigo-300 text-xs hover:underline">How to use the Dan ranking board</a>
             </div>
             
             <!-- Add Player/Character Form -->
@@ -252,6 +282,12 @@
             </p>
         </footer>
     </div>
+    
+    <!-- Floating Match Button -->
+    <div id="start-match-container" class="hidden fixed bottom-8 right-8 z-40">
+        <button id="start-match-btn" class="bg-teal-500 hover:bg-teal-600 text-white py-4 px-6 btn text-lg">Start Match</button>
+        <button id="clear-selection-btn" class="absolute -top-2 -right-2 bg-gray-700 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">X</button>
+    </div>
 
     <!-- Custom Modal -->
     <div id="custom-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
@@ -263,11 +299,37 @@
         </div>
     </div>
     
+    <!-- Match Modal -->
+    <div id="match-modal" class="hidden fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-4">
+        <div class="bg-black border-2 border-teal-500 p-6 sm:p-8 max-w-3xl w-full">
+            <div class="grid grid-cols-2 gap-4 sm:gap-8 items-center text-center">
+                <!-- Player 1 -->
+                <div id="match-p1-container">
+                    <p class="text-xs text-cyan-400 mb-2">Player 1</p>
+                    <p id="match-p1-name" class="text-lg font-bold text-white mb-1"></p>
+                    <p id="match-p1-char" class="text-xs text-gray-300 mb-4"></p>
+                    <button id="match-p1-winner-btn" class="w-full bg-cyan-600 hover:bg-cyan-700 text-white py-3 px-4 text-sm btn">Winner</button>
+                </div>
+                <!-- Player 2 -->
+                <div id="match-p2-container">
+                     <p class="text-xs text-rose-500 mb-2">Player 2</p>
+                    <p id="match-p2-name" class="text-lg font-bold text-white mb-1"></p>
+                    <p id="match-p2-char" class="text-xs text-gray-300 mb-4"></p>
+                    <button id="match-p2-winner-btn" class="w-full bg-rose-600 hover:bg-rose-700 text-white py-3 px-4 text-sm btn">Winner</button>
+                </div>
+            </div>
+            <div class="mt-8 flex justify-center items-center gap-4">
+                 <button id="match-draw-btn" class="bg-gray-600 hover:bg-gray-700 text-white py-2 px-6 text-xs btn">Draw</button>
+                 <button id="match-cancel-btn" class="bg-gray-800 hover:bg-gray-700 text-white py-2 px-6 text-xs btn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Rules Modal -->
     <div id="rules-modal" class="hidden fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-4">
         <div class="bg-black border-2 border-yellow-400 p-6 sm:p-8 max-w-3xl w-full h-[90vh] flex flex-col">
             <h1 class="text-2xl font-bold text-yellow-400 mb-4 text-center">Official Ruleset</h1>
-            <div id="rules-content" class="flex-grow overflow-y-auto pr-4 text-left">
+            <div id="rules-content" class="modal-content-area flex-grow overflow-y-auto pr-4 text-left">
                 <h2>1. Objective</h2>
                 <p>The Rōnin Dan Board is designed to provide a structured, competitive ranking system for local scenes. The primary goal is to progress through the Dan ranks, from Shodan (1 Dan) to Judan (10 Dan), by competing against other players in sanctioned ranking events.</p>
                 
@@ -308,6 +370,54 @@
             </div>
         </div>
     </div>
+    
+    <!-- Usage Modal -->
+    <div id="usage-modal" class="hidden fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-4">
+        <div class="bg-black border-2 border-indigo-500 p-6 sm:p-8 max-w-3xl w-full h-[90vh] flex flex-col">
+            <h1 class="text-2xl font-bold text-indigo-400 mb-4 text-center">How to Use</h1>
+            <div class="modal-content-area flex-grow overflow-y-auto pr-4 text-left">
+                <h2>Adding Players</h2>
+                <ul>
+                    <li>Use the "Add Player/Character" form.</li>
+                    <li>Enter a "Gamer Tag" and "Character" name.</li>
+                    <li>Optionally, select their starting "Rank" and "Points". The default is 1 Dan, 0 points.</li>
+                    <li>Click "Add Entry".</li>
+                </ul>
+                <h2>Starting a Match</h2>
+                 <ul>
+                    <li>Click the "Set P1" button on a player's row to nominate them as Player 1. Their row will be highlighted in cyan.</li>
+                    <li>All other player buttons will change to "Set P2".</li>
+                    <li>Click "Set P2" on another player's row to nominate them as Player 2.</li>
+                    <li>A floating "Start Match" button will appear at the bottom-right of the screen. Click it to open the match resolution screen.</li>
+                </ul>
+                 <h2>Resolving a Match</h2>
+                 <ul>
+                    <li>In the match modal, click the "Winner" button under the player who won the match.</li>
+                    <li>Points (+1 for winner, -1 for loser) and match history will be updated automatically.</li>
+                    <li>Click "Draw" if the match was a tie (no points are awarded).</li>
+                    <li>Click "Cancel" to close the modal without recording a result.</li>
+                </ul>
+                <h2>Viewing Player Stats</h2>
+                <ul>
+                    <li>Click the ">" arrow icon to the left of a player's name.</li>
+                    <li>This will expand an accordion showing their win-loss trend over the last 100 matches.</li>
+                </ul>
+                <h2>Managing Players</h2>
+                <ul>
+                    <li><strong>Move Order:</strong> Use the "↑" and "↓" arrows to change a player's sort order *within the same point value*.</li>
+                    <li><strong>Delete:</strong> Click the "Del" button and confirm in the pop-up to permanently remove a player/character from the board.</li>
+                </ul>
+                <h2>Importing & Exporting</h2>
+                <ul>
+                    <li><strong>Export:</strong> Click "Export Data (CSV)" to save the current board to a .csv file.</li>
+                    <li><strong>Import:</strong> Click "Import Data (CSV)" to load a previously saved .csv file. <strong>Warning:</strong> This will overwrite all current data on the board.</li>
+                </ul>
+            </div>
+             <div class="mt-6 text-center">
+                <button id="close-usage-modal" class="bg-indigo-500 hover:bg-indigo-600 text-white py-2 px-8 transition duration-200 text-xs btn">Close</button>
+            </div>
+        </div>
+    </div>
 
 
     <script>
@@ -329,390 +439,20 @@
             const rulesModal = document.getElementById('rules-modal');
             const rulesLink = document.getElementById('rules-link');
             const closeRulesModalButton = document.getElementById('close-rules-modal');
+            const usageModal = document.getElementById('usage-modal');
+            const usageLink = document.getElementById('usage-link');
+            const closeUsageModalButton = document.getElementById('close-usage-modal');
+            const matchModal = document.getElementById('match-modal');
+
+            // Match UI
+            const startMatchContainer = document.getElementById('start-match-container');
+            const startMatchBtn = document.getElementById('start-match-btn');
+            const clearSelectionBtn = document.getElementById('clear-selection-btn');
 
 
             let players = JSON.parse(localStorage.getItem('danRankingPlayers')) || [];
-
-            // --- CUSTOM SELECT LOGIC ---
-            function createCustomSelect(selectElement) {
-                // Check if element exists before proceeding
-                if (!selectElement) return;
-
-                const wrapper = selectElement.parentElement;
-                
-                const trigger = document.createElement('div');
-                trigger.className = 'custom-select-trigger';
-                trigger.setAttribute('tabindex', '0');
-
-                const selectedDisplay = document.createElement('span');
-                selectedDisplay.textContent = selectElement.options[selectElement.selectedIndex].textContent;
-                
-                const arrow = document.createElement('div');
-                arrow.className = 'custom-arrow';
-
-                trigger.appendChild(selectedDisplay);
-                trigger.appendChild(arrow);
-                wrapper.appendChild(trigger);
-                
-                const optionsContainer = document.createElement('div');
-                optionsContainer.className = 'custom-options hidden';
-                
-                Array.from(selectElement.options).forEach(option => {
-                    const optionDiv = document.createElement('div');
-                    optionDiv.className = 'custom-option';
-                    optionDiv.textContent = option.textContent;
-                    optionDiv.dataset.value = option.value;
-                    
-                    if (option.selected) {
-                        optionDiv.classList.add('selected');
-                    }
-
-                    optionDiv.addEventListener('click', () => {
-                        selectElement.value = option.value;
-                        selectedDisplay.textContent = option.textContent;
-                        
-                        // Update selected class
-                        optionsContainer.querySelectorAll('.custom-option').forEach(opt => opt.classList.remove('selected'));
-                        optionDiv.classList.add('selected');
-                        
-                        optionsContainer.classList.add('hidden');
-                    });
-                    optionsContainer.appendChild(optionDiv);
-                });
-                
-                wrapper.appendChild(optionsContainer);
-                
-                trigger.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    closeAllSelects(trigger);
-                    optionsContainer.classList.toggle('hidden');
-                });
-                 trigger.addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        closeAllSelects(trigger);
-                        optionsContainer.classList.toggle('hidden');
-                    }
-                });
-            }
-
-            function closeAllSelects(except) {
-                document.querySelectorAll('.custom-select-wrapper').forEach(wrapper => {
-                    const trigger = wrapper.querySelector('.custom-select-trigger');
-                    const options = wrapper.querySelector('.custom-options');
-                    if (trigger !== except && options && !options.classList.contains('hidden')) {
-                        options.classList.add('hidden');
-                    }
-                });
-            }
-
-            document.addEventListener('click', closeAllSelects);
-            
-            createCustomSelect(danSelect);
-            createCustomSelect(pointsSelect);
-            
-            // --- ANIMATION & RENDERING ---
-            async function updateAndAnimateBoard() {
-                const firstPositions = new Map();
-                document.querySelectorAll('.player-row').forEach(el => {
-                    firstPositions.set(el.id, el.getBoundingClientRect());
-                });
-
-                renderBoard();
-
-                await new Promise(resolve => requestAnimationFrame(resolve));
-
-                document.querySelectorAll('.player-row').forEach(el => {
-                    const lastPos = el.getBoundingClientRect();
-                    const firstPos = firstPositions.get(el.id);
-
-                    if (firstPos) { 
-                        const deltaX = firstPos.left - lastPos.left;
-                        const deltaY = firstPos.top - lastPos.top;
-
-                        if (Math.abs(deltaX) > 0.5 || Math.abs(deltaY) > 0.5) {
-                            el.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
-                            el.style.transition = 'transform 0s'; 
-                            requestAnimationFrame(() => {
-                                el.style.removeProperty('transform');
-                                el.style.removeProperty('transition');
-                            });
-                        }
-                    } else {
-                        el.style.opacity = '0';
-                        el.style.transform = 'scale(0.95)';
-                        requestAnimationFrame(() => {
-                            el.style.opacity = '1';
-                            el.style.transform = 'scale(1)';
-                        });
-                    }
-                });
-            }
-
-            function renderBoard() {
-                rankingBoard.innerHTML = ''; 
-                if (players.length === 0) {
-                    rankingBoard.innerHTML = `
-                        <div class="text-center py-10 bg-gray-900 border-2 border-gray-700">
-                            <h3 class="text-lg text-white">No Players Yet</h3>
-                            <p class="text-xs text-gray-400 mt-2">Add a player using the form above to get started!</p>
-                        </div>`;
-                    return;
-                }
-                const ranks = {};
-                for (let i = 1; i <= 10; i++) ranks[i] = [];
-                players.forEach(player => {
-                    player.characters.forEach(character => {
-                        if (ranks[character.dan]) {
-                            ranks[character.dan].push({ ...character, playerName: player.name, playerId: player.id });
-                        }
-                    });
-                });
-                for (let dan = 10; dan >= 1; dan--) {
-                    const charactersInRank = ranks[dan];
-                    charactersInRank.sort((a, b) => b.points - a.points || (a.sortOrder || 0) - (b.sortOrder || 0));
-                    const section = document.createElement('section');
-                    section.className = `dan-rank dan-${dan} bg-gray-900 p-4 sm:p-6`;
-                    const danNames = { 1: "Shodan", 2: "Nidan", 3: "Sandan", 4: "Yondan", 5: "Godan", 6: "Rokudan", 7: "Shichidan", 8: "Hachidan", 9: "Kyudan", 10: "Judan" };
-                    let headerText = `${dan} Dan (${danNames[dan] || ''})`;
-                    let characterListHTML = '<div class="text-center text-gray-500 italic py-4 text-xs">No characters at this rank.</div>';
-                    if (charactersInRank.length > 0) {
-                        characterListHTML = charactersInRank.map((char, i, arr) => {
-                            const canMoveUp = i > 0 && arr[i-1].points === char.points;
-                            const canMoveDown = i < arr.length - 1 && arr[i+1].points === char.points;
-                            const characterId = `char-${char.playerId}-${char.name.replace(/[^a-zA-Z0-9]/g, '-')}`;
-                            return `
-                            <div id="${characterId}" class="player-row flex items-center justify-between bg-black p-3 mb-2 flex-wrap border-2 border-gray-800">
-                                <div class="flex-grow mb-2 sm:mb-0 mr-4">
-                                    <p class="font-bold text-sm text-white">${char.playerName}</p>
-                                    <p class="text-xs text-gray-300 mt-1">${char.name}</p>
-                                </div>
-                                <div class="flex items-center mx-4 my-2 sm:my-0">
-                                    <span class="text-xs mr-2 text-gray-400">Points:</span>
-                                    <span class="font-mono text-xl ${getPointsClass(char.points)}">${formatPoints(char.points)}</span>
-                                </div>
-                                <div class="flex items-center space-x-2">
-                                    <button onclick="window.app.moveCharacter('${char.playerId}', '${char.name}', 'up')" class="bg-gray-700 hover:bg-gray-600 text-white font-bold w-8 h-8 transition duration-200 flex items-center justify-center text-xs btn" ${!canMoveUp ? 'disabled' : ''}>&uarr;</button>
-                                    <button onclick="window.app.moveCharacter('${char.playerId}', '${char.name}', 'down')" class="bg-gray-700 hover:bg-gray-600 text-white font-bold w-8 h-8 transition duration-200 flex items-center justify-center text-xs btn" ${!canMoveDown ? 'disabled' : ''}>&darr;</button>
-                                    <button onclick="window.app.updatePoints('${char.playerId}', '${char.name}', 1)" class="bg-teal-500 hover:bg-teal-600 text-white font-bold w-10 h-10 text-base transition duration-200 btn">+</button>
-                                    <button onclick="window.app.updatePoints('${char.playerId}', '${char.name}', -1)" class="bg-rose-600 hover:bg-rose-700 text-white font-bold w-10 h-10 text-base transition duration-200 btn">-</button>
-                                    <button onclick="window.app.promptDeleteCharacter('${char.playerId}', '${char.name}')" class="bg-gray-800 hover:bg-gray-700 text-white font-bold w-10 h-10 text-[10px] transition duration-200 btn">Del</button>
-                                </div>
-                            </div>`;
-                        }).join('');
-                    }
-                    section.innerHTML = `<h2 class="text-xl font-bold text-white mb-4">${headerText}</h2><div class="space-y-2">${characterListHTML}</div>`;
-                    rankingBoard.appendChild(section);
-                }
-            }
-
-            function getPointsClass(points) {
-                if (points > 0) return 'points-positive';
-                if (points < 0) return 'points-negative';
-                return 'points-neutral';
-            }
-
-            function formatPoints(points) {
-                return points > 0 ? `+${points}` : `${points}`;
-            }
-            
-            function savePlayers() {
-                localStorage.setItem('danRankingPlayers', JSON.stringify(players));
-            }
-            
-            function showModal(message, buttons) {
-                modalText.textContent = message;
-                modalActions.innerHTML = '';
-                buttons.forEach(btnInfo => {
-                    const button = document.createElement('button');
-                    button.textContent = btnInfo.text;
-                    button.className = btnInfo.classes;
-                    button.onclick = () => { hideModal(); if (btnInfo.onClick) btnInfo.onClick(); };
-                    modalActions.appendChild(button);
-                });
-                customModal.classList.remove('hidden');
-            }
-
-            function hideModal() {
-                customModal.classList.add('hidden');
-            }
-            
-            // --- CORE LOGIC ---
-            const app = {
-                updatePoints(playerId, characterName, amount) {
-                    const player = players.find(p => p.id === playerId);
-                    if (!player) return;
-                    const character = player.characters.find(c => c.name === characterName);
-                    if (!character) return;
-                    character.points += amount;
-                    if (character.points >= 3) {
-                        if (character.dan < 10) { character.dan++; character.points = 0; triggerConfetti(); } 
-                        else { character.points = 2; }
-                    }
-                    if (character.points <= -3) {
-                        if (character.dan > 1) { character.dan--; character.points = 0; } 
-                        else { character.points = -2; }
-                    }
-                    savePlayers();
-                    updateAndAnimateBoard();
-                },
-                moveCharacter(playerId, characterName, direction) {
-                    const player = players.find(p => p.id === playerId);
-                    if (!player) return;
-                    const sourceChar = player.characters.find(c => c.name === characterName);
-                    if (!sourceChar) return;
-                    const charactersInRank = players.flatMap(p => p.characters.map(char => ({...char, playerId: p.id}))).filter(char => char.dan === sourceChar.dan);
-                    charactersInRank.sort((a, b) => b.points - a.points || a.sortOrder - b.sortOrder);
-                    const sourceIndex = charactersInRank.findIndex(c => c.playerId === playerId && c.name === characterName);
-                    if (sourceIndex === -1) return;
-                    const targetIndex = direction === 'up' ? sourceIndex - 1 : sourceIndex + 1;
-                    if (targetIndex < 0 || targetIndex >= charactersInRank.length) return;
-                    const targetCharData = charactersInRank[targetIndex];
-                    if (sourceChar.points !== targetCharData.points) return;
-                    const targetPlayer = players.find(p => p.id === targetCharData.playerId);
-                    const targetChar = targetPlayer.characters.find(c => c.name === targetCharData.name);
-                    [sourceChar.sortOrder, targetChar.sortOrder] = [targetChar.sortOrder, sourceChar.sortOrder];
-                    savePlayers();
-                    updateAndAnimateBoard();
-                },
-                promptDeleteCharacter(playerId, characterName) {
-                    const player = players.find(p => p.id === playerId);
-                    if (!player) return;
-                    showModal(`Delete ${characterName} for player ${player.name}?`, [
-                        { text: 'Cancel', classes: 'bg-gray-700 hover:bg-gray-600 text-white py-2 px-6 transition duration-200 text-xs btn' },
-                        { text: 'Delete', classes: 'bg-rose-600 hover:bg-rose-700 text-white py-2 px-6 transition duration-200 text-xs btn', onClick: () => this.deleteCharacter(playerId, characterName) }
-                    ]);
-                },
-                deleteCharacter(playerId, characterName) {
-                    const playerIndex = players.findIndex(p => p.id === playerId);
-                    if (playerIndex === -1) return;
-                    players[playerIndex].characters = players[playerIndex].characters.filter(c => c.name !== characterName);
-                    if (players[playerIndex].characters.length === 0) players.splice(playerIndex, 1);
-                    savePlayers();
-                    updateAndAnimateBoard();
-                }
-            };
-            window.app = app;
-
-            addForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                const gamerTag = gamerTagInput.value.trim();
-                const characterName = characterNameInput.value.trim();
-                const selectedDan = parseInt(danSelect.value, 10);
-                const selectedPoints = parseInt(pointsSelect.value, 10);
-                if (!gamerTag || !characterName) return;
-                let player = players.find(p => p.name.toLowerCase() === gamerTag.toLowerCase());
-                if (player) {
-                    if (player.characters.some(c => c.name.toLowerCase() === characterName.toLowerCase())) {
-                        showModal('This character already exists for this player.', [{ text: 'OK', classes: 'bg-yellow-500 hover:bg-yellow-600 text-black py-2 px-6 transition duration-200 text-xs btn' }]);
-                        return;
-                    }
-                    player.characters.push({ name: characterName, dan: selectedDan, points: selectedPoints, sortOrder: Date.now() });
-                } else {
-                    players.push({ id: crypto.randomUUID(), name: gamerTag, characters: [{ name: characterName, dan: selectedDan, points: selectedPoints, sortOrder: Date.now() }] });
-                }
-                savePlayers();
-                updateAndAnimateBoard();
-                addForm.reset();
-                // Reset custom selects
-                danSelect.value = '1';
-                danSelect.parentElement.querySelector('.custom-select-trigger span').textContent = '1 Dan';
-                pointsSelect.value = '0';
-                pointsSelect.parentElement.querySelector('.custom-select-trigger span').textContent = '0';
-                
-                 document.querySelectorAll('.custom-options').forEach(container => {
-                    container.querySelectorAll('.custom-option').forEach(opt => opt.classList.remove('selected'));
-                    const defaultDan = container.querySelector('[data-value="1"]');
-                    if(defaultDan) defaultDan.classList.add('selected');
-                    const defaultPoints = container.querySelector('[data-value="0"]');
-                    if(defaultPoints) defaultPoints.classList.add('selected');
-                });
-            });
-            
-            // --- IMPORT/EXPORT FUNCTIONS ---
-            function executeExport() {
-                if (players.length === 0) {
-                     showModal('There is no data to export.', [{ text: 'OK', classes: 'bg-yellow-500 hover:bg-yellow-600 text-black py-2 px-6 transition duration-200 text-xs btn' }]);
-                    return;
-                }
-                const header = ['playerId', 'playerName', 'characterName', 'dan', 'points', 'sortOrder'];
-                const rows = players.flatMap(player => player.characters.map(character => [player.id, player.name, character.name, character.dan, character.points, character.sortOrder || Date.now()]));
-                let csvContent = "data:text/csv;charset=utf-8," + header.join(",") + "\n" + rows.map(e => e.join(",")).join("\n");
-                const encodedUri = encodeURI(csvContent);
-                const link = document.createElement("a");
-                link.setAttribute("href", encodedUri);
-                link.setAttribute("download", `ronin_dan_ranking_data.csv`);
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            }
-            function handleFileImport(event) {
-                const file = event.target.files[0];
-                if (!file) return;
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    try {
-                        const lines = e.target.result.trim().split('\n');
-                        const header = lines.shift().trim().split(',');
-                        const expectedHeader = ['playerId', 'playerName', 'characterName', 'dan', 'points', 'sortOrder'];
-                        if(JSON.stringify(header) !== JSON.stringify(expectedHeader)) throw new Error("Invalid CSV header format.");
-                        let isValid = true;
-                        const validatedRows = lines.map(line => {
-                            if (!line) return null;
-                            const values = line.trim().split(',');
-                            if (values.length !== expectedHeader.length) { isValid = false; return null; }
-                            const [dan, points, sortOrder] = [parseInt(values[3], 10), parseInt(values[4], 10), parseInt(values[5], 10)];
-                            if (isNaN(dan) || dan < 1 || dan > 10 || isNaN(points) || points < -2 || points > 2 || isNaN(sortOrder) || !values[0] || !values[1] || !values[2]) { isValid = false; return null; }
-                            return values;
-                        }).filter(Boolean);
-                        if (!isValid || validatedRows.length !== lines.filter(Boolean).length) throw new Error("CSV contains improperly formatted or invalid data.");
-                        const importedPlayersMap = new Map();
-                        validatedRows.forEach(values => {
-                            const [playerId, playerName, characterName, dan, points, sortOrder] = values;
-                            if (!importedPlayersMap.has(playerId)) importedPlayersMap.set(playerId, { id: playerId, name: playerName, characters: [] });
-                            importedPlayersMap.get(playerId).characters.push({ name: characterName, dan: parseInt(dan), points: parseInt(points), sortOrder: parseInt(sortOrder) });
-                        });
-                        players = Array.from(importedPlayersMap.values());
-                        savePlayers();
-                        updateAndAnimateBoard();
-                        showModal('Data imported successfully!', [{ text: 'OK', classes: 'bg-yellow-500 hover:bg-yellow-600 text-black py-2 px-6 transition duration-200 text-xs btn' }]);
-                    } catch (error) {
-                        console.error("Error parsing CSV:", error);
-                        showModal('Import failed. The selected file is improperly formatted or contains invalid data.', [{ text: 'OK', classes: 'bg-rose-600 hover:bg-rose-700 text-white py-2 px-6 transition duration-200 text-xs btn' }]);
-                    } finally {
-                        importFileInput.value = "";
-                    }
-                };
-                reader.readAsText(file);
-            };
-            exportButton.addEventListener('click', () => {
-                 showModal('Save the current ranking board to a .csv file?', [
-                    { text: 'Cancel', classes: 'bg-gray-700 hover:bg-gray-600 text-white py-2 px-6 transition duration-200 text-xs btn' },
-                    { text: 'Save', classes: 'bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-6 transition duration-200 text-xs btn', onClick: executeExport }
-                ]);
-            });
-            importButton.addEventListener('click', () => {
-                showModal('This will overwrite all current data.', [
-                    { text: 'Cancel', classes: 'bg-gray-700 hover:bg-gray-600 text-white py-2 px-6 transition duration-200 text-xs btn' },
-                    { text: 'Import', classes: 'bg-yellow-500 hover:bg-yellow-600 text-black py-2 px-6 transition duration-200 text-xs btn', onClick: () => importFileInput.click() }
-                ]);
-            });
-            importFileInput.addEventListener('change', handleFileImport);
-            
-            // Rules Modal Listeners
-            rulesLink.addEventListener('click', (e) => {
-                e.preventDefault();
-                rulesModal.classList.remove('hidden');
-            });
-            closeRulesModalButton.addEventListener('click', () => {
-                rulesModal.classList.add('hidden');
-            });
-             rulesModal.addEventListener('click', (e) => {
-                if (e.target === rulesModal) {
-                    rulesModal.classList.add('hidden');
-                }
-            });
-
+            let charts = {}; // To store chart instances
+            let matchSelection = { p1: null, p2: null };
 
             // --- CONFETTI EFFECT ---
             const confettiCanvas = document.getElementById('confetti-canvas');
@@ -749,6 +489,581 @@
             window.addEventListener('resize', resizeCanvas);
             resizeCanvas();
             animateConfetti();
+
+
+            // --- CUSTOM SELECT LOGIC ---
+            function createCustomSelect(selectElement) {
+                if (!selectElement) return;
+                const wrapper = selectElement.parentElement;
+                const trigger = document.createElement('div');
+                trigger.className = 'custom-select-trigger';
+                trigger.setAttribute('tabindex', '0');
+                const selectedDisplay = document.createElement('span');
+                selectedDisplay.textContent = selectElement.options[selectElement.selectedIndex].textContent;
+                const arrow = document.createElement('div');
+                arrow.className = 'custom-arrow';
+                trigger.appendChild(selectedDisplay);
+                trigger.appendChild(arrow);
+                wrapper.appendChild(trigger);
+                const optionsContainer = document.createElement('div');
+                optionsContainer.className = 'custom-options hidden';
+                Array.from(selectElement.options).forEach(option => {
+                    const optionDiv = document.createElement('div');
+                    optionDiv.className = 'custom-option';
+                    optionDiv.textContent = option.textContent;
+                    optionDiv.dataset.value = option.value;
+                    if (option.selected) optionDiv.classList.add('selected');
+                    optionDiv.addEventListener('click', () => {
+                        selectElement.value = option.value;
+                        selectedDisplay.textContent = option.textContent;
+                        optionsContainer.querySelectorAll('.custom-option').forEach(opt => opt.classList.remove('selected'));
+                        optionDiv.classList.add('selected');
+                        optionsContainer.classList.add('hidden');
+                    });
+                    optionsContainer.appendChild(optionDiv);
+                });
+                wrapper.appendChild(optionsContainer);
+                trigger.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    closeAllSelects(trigger);
+                    optionsContainer.classList.toggle('hidden');
+                });
+                 trigger.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        closeAllSelects(trigger);
+                        optionsContainer.classList.toggle('hidden');
+                    }
+                });
+            }
+
+            function closeAllSelects(except) {
+                document.querySelectorAll('.custom-select-wrapper').forEach(wrapper => {
+                    const trigger = wrapper.querySelector('.custom-select-trigger');
+                    const options = wrapper.querySelector('.custom-options');
+                    if (trigger !== except && options && !options.classList.contains('hidden')) {
+                        options.classList.add('hidden');
+                    }
+                });
+            }
+
+            document.addEventListener('click', closeAllSelects);
+            createCustomSelect(danSelect);
+            createCustomSelect(pointsSelect);
+            
+            // --- ANIMATION & RENDERING ---
+            async function updateAndAnimateBoard() {
+                const firstPositions = new Map();
+                document.querySelectorAll('.player-row-wrapper').forEach(el => {
+                    firstPositions.set(el.id, el.getBoundingClientRect());
+                });
+
+                renderBoard();
+
+                await new Promise(resolve => requestAnimationFrame(resolve));
+
+                document.querySelectorAll('.player-row-wrapper').forEach(el => {
+                    const lastPos = el.getBoundingClientRect();
+                    const firstPos = firstPositions.get(el.id);
+
+                    if (firstPos) { 
+                        const deltaX = firstPos.left - lastPos.left;
+                        const deltaY = firstPos.top - lastPos.top;
+
+                        if (Math.abs(deltaX) > 0.5 || Math.abs(deltaY) > 0.5) {
+                            el.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
+                            el.style.transition = 'transform 0s'; 
+                            requestAnimationFrame(() => {
+                                el.style.removeProperty('transform');
+                                el.style.removeProperty('transition');
+                            });
+                        }
+                    } else {
+                        el.style.opacity = '0';
+                        el.style.transform = 'scale(0.95)';
+                        requestAnimationFrame(() => {
+                            el.style.opacity = '1';
+                            el.style.transform = 'scale(1)';
+                        });
+                    }
+                });
+            }
+
+            function renderBoard() {
+                rankingBoard.innerHTML = ''; 
+                if (players.length === 0) {
+                    rankingBoard.innerHTML = `<div class="text-center py-10 bg-gray-900 border-2 border-gray-700"><h3 class="text-lg text-white">No Players Yet</h3><p class="text-xs text-gray-400 mt-2">Add a player using the form above to get started!</p></div>`;
+                    return;
+                }
+                const ranks = {};
+                for (let i = 1; i <= 10; i++) ranks[i] = [];
+                players.forEach(player => {
+                    player.characters.forEach(character => {
+                        if (ranks[character.dan]) {
+                            ranks[character.dan].push({ ...character, playerName: player.name, playerId: player.id });
+                        }
+                    });
+                });
+                for (let dan = 10; dan >= 1; dan--) {
+                    const charactersInRank = ranks[dan];
+                    charactersInRank.sort((a, b) => b.points - a.points || (a.sortOrder || 0) - (b.sortOrder || 0));
+                    const section = document.createElement('section');
+                    section.className = `dan-rank dan-${dan} bg-gray-900 p-4 sm:p-6`;
+                    const danNames = { 1: "Shodan", 2: "Nidan", 3: "Sandan", 4: "Yondan", 5: "Godan", 6: "Rokudan", 7: "Shichidan", 8: "Hachidan", 9: "Kyudan", 10: "Judan" };
+                    let headerText = `${dan} Dan (${danNames[dan] || ''})`;
+                    let characterListHTML = '<div class="text-center text-gray-500 italic py-4 text-xs">No characters at this rank.</div>';
+                    if (charactersInRank.length > 0) {
+                        characterListHTML = charactersInRank.map((char, i, arr) => {
+                            const canMoveUp = i > 0 && arr[i-1].points === char.points;
+                            const canMoveDown = i < arr.length - 1 && arr[i+1].points === char.points;
+                            const characterId = `char-${char.playerId}-${char.name.replace(/[^a-zA-Z0-9]/g, '-')}`;
+                            const stats = calculateWinLoss(char.matches);
+                            
+                             const isP1 = matchSelection.p1 && matchSelection.p1.playerId === char.playerId && matchSelection.p1.name === char.name;
+                            const isP2 = matchSelection.p2 && matchSelection.p2.playerId === char.playerId && matchSelection.p2.name === char.name;
+
+                            let buttonText = '';
+                            let selectionClass = '';
+                            let isDisabled = false;
+
+                            if (!matchSelection.p1) {
+                                buttonText = 'Set P1';
+                            } else if (!matchSelection.p2) {
+                                if (isP1) {
+                                    buttonText = 'Deselect P1';
+                                    selectionClass = 'selected-p1';
+                                } else {
+                                    buttonText = 'Set P2';
+                                }
+                            } else {
+                                if (isP1) {
+                                    buttonText = 'Deselect P1';
+                                    selectionClass = 'selected-p1';
+                                } else if (isP2) {
+                                    buttonText = 'Deselect P2';
+                                    selectionClass = 'selected-p2';
+                                } else {
+                                    isDisabled = true;
+                                    buttonText = 'Set P1';
+                                }
+                            }
+
+                            return `
+                            <div id="${characterId}" class="player-row-wrapper bg-black border-2 border-gray-800 mb-2 ${selectionClass}">
+                                <div class="player-row-main flex items-center justify-between p-3 flex-wrap">
+                                    <button class="accordion-toggle p-2 -ml-2 mr-2" data-target="#${characterId}-graph" data-player-id="${char.playerId}" data-char-name="${char.name}">
+                                        <svg width="12" height="12" viewBox="0 0 8 12" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 1L6 6L1 11" stroke="#e0e0e0" stroke-width="2"/></svg>
+                                    </button>
+                                    <div class="flex-grow mb-2 sm:mb-0 mr-4">
+                                        <p class="font-bold text-sm text-white">${char.playerName}</p>
+                                        <p class="text-xs text-gray-300 mt-1">${char.name}</p>
+                                        <p class="text-[10px] text-gray-500 mt-2">W/L: ${stats.wins}-${stats.losses} (${stats.percentage}%)</p>
+                                    </div>
+                                    <div class="flex items-center mx-4 my-2 sm:my-0">
+                                        <span class="text-xs mr-2 text-gray-400">Points:</span>
+                                        <span class="font-mono text-xl ${getPointsClass(char.points)}">${formatPoints(char.points)}</span>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <button data-action="select" data-player-id="${char.playerId}" data-char-name="${char.name}" class="bg-teal-500 hover:bg-teal-600 text-white font-bold h-10 px-4 text-[10px] transition duration-200 btn" ${isDisabled ? 'disabled' : ''}>${buttonText}</button>
+                                        <button data-action="move" data-player-id="${char.playerId}" data-char-name="${char.name}" data-direction="up" class="bg-gray-700 hover:bg-gray-600 text-white font-bold w-10 h-10 transition duration-200 flex items-center justify-center text-xs btn" ${!canMoveUp ? 'disabled' : ''}>&uarr;</button>
+                                        <button data-action="move" data-player-id="${char.playerId}" data-char-name="${char.name}" data-direction="down" class="bg-gray-700 hover:bg-gray-600 text-white font-bold w-10 h-10 transition duration-200 flex items-center justify-center text-xs btn" ${!canMoveDown ? 'disabled' : ''}>&darr;</button>
+                                        <button data-action="delete" data-player-id="${char.playerId}" data-char-name="${char.name}" class="bg-gray-800 hover:bg-gray-700 text-white font-bold w-10 h-10 text-[10px] transition duration-200 btn">Del</button>
+                                    </div>
+                                </div>
+                                <div id="${characterId}-graph" class="accordion-content text-center px-2">
+                                     <p class="text-[10px] text-gray-400 mb-2">Win-loss trend over the last 100 matches</p>
+                                    <canvas id="${characterId}-chart"></canvas>
+                                </div>
+                            </div>`;
+                        }).join('');
+                    }
+                    section.innerHTML = `<h2 class="text-xl font-bold text-white mb-4">${headerText}</h2><div class="space-y-2">${characterListHTML}</div>`;
+                    rankingBoard.appendChild(section);
+                }
+            }
+            
+            function calculateWinLoss(matches = []) {
+                const stats = { wins: 0, losses: 0, draws: 0 };
+                matches.forEach(match => {
+                    const result = (typeof match === 'object' && match !== null) ? match.result : match;
+                    if (result === 'win') stats.wins++;
+                    if (result === 'loss') stats.losses++;
+                    if (result === 'draw') stats.draws++;
+                });
+                const total = stats.wins + stats.losses;
+                const percentage = total === 0 ? '0.00' : ((stats.wins / total) * 100).toFixed(2);
+                return { ...stats, percentage };
+            }
+
+             function renderWinLossGraph(canvasId, matches = []) {
+                const canvas = document.getElementById(canvasId);
+                if (!canvas) return;
+
+                const nonDrawMatches = matches.filter(m => {
+                    const result = (typeof m === 'object' && m !== null) ? m.result : m;
+                    return result !== 'draw';
+                });
+
+                const last100Matches = nonDrawMatches.slice(-100);
+                const labels = [];
+                const data = [];
+                let wins = 0;
+                last100Matches.forEach((match, index) => {
+                     const result = (typeof match === 'object' && match !== null) ? match.result : match;
+                    if (result === 'win') wins++;
+                    const total = index + 1;
+                    labels.push(`M${nonDrawMatches.length - last100Matches.length + index + 1}`);
+                    data.push(((wins / total) * 100).toFixed(2));
+                });
+                Chart.defaults.font.family = "'Press Start 2P', cursive";
+                Chart.defaults.color = '#e0e0e0';
+                if (charts[canvasId]) charts[canvasId].destroy();
+                charts[canvasId] = new Chart(canvas, {
+                    type: 'line', data: { labels, datasets: [{
+                        label: 'Win %', data, borderColor: '#f43f5e', backgroundColor: 'rgba(244, 63, 94, 0.2)',
+                        borderWidth: 2, pointBackgroundColor: '#facc15', pointRadius: 3, tension: 0.1, fill: true,
+                    }] },
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: { beginAtZero: true, max: 100, ticks: { callback: value => value + '%', font: { size: 8 } }, grid: { color: 'rgba(224, 224, 224, 0.2)' } },
+                            x: { ticks: { font: { size: 8 }, maxRotation: 90, minRotation: 90 }, grid: { color: 'rgba(224, 224, 224, 0.1)' } }
+                        },
+                        plugins: { legend: { display: false }, tooltip: { callbacks: { label: context => `Win Rate: ${context.parsed.y.toFixed(2)}%` } } }
+                    }
+                });
+            }
+
+            function getPointsClass(points) {
+                if (points > 0) return 'points-positive';
+                if (points < 0) return 'points-negative';
+                return 'points-neutral';
+            }
+
+            function formatPoints(points) {
+                return points > 0 ? `+${points}` : `${points}`;
+            }
+            
+            function savePlayers() {
+                localStorage.setItem('danRankingPlayers', JSON.stringify(players));
+            }
+            
+            function showModal(message, buttons) {
+                modalText.textContent = message;
+                modalActions.innerHTML = '';
+                buttons.forEach(btnInfo => {
+                    const button = document.createElement('button');
+                    button.textContent = btnInfo.text;
+                    button.className = btnInfo.classes;
+                    button.onclick = () => { hideModal(); if (btnInfo.onClick) btnInfo.onClick(); };
+                    modalActions.appendChild(button);
+                });
+                customModal.classList.remove('hidden');
+            }
+
+            function hideModal() {
+                customModal.classList.add('hidden');
+                matchModal.classList.add('hidden');
+            }
+            
+            // --- CORE LOGIC ---
+            const app = {
+                resolveMatch(result) {
+                    const { p1, p2 } = matchSelection;
+                    const p1_player = players.find(p => p.id === p1.playerId);
+                    const p1_char = p1_player ? p1_player.characters.find(c => c.name === p1.name) : null;
+                    const p2_player = players.find(p => p.id === p2.playerId);
+                    const p2_char = p2_player ? p2_player.characters.find(c => c.name === p2.name) : null;
+
+                    if (!p1_char || !p2_char) {
+                        console.error("Could not find one of the characters in the match.");
+                        app.clearMatchSelection();
+                        hideModal();
+                        return;
+                    }
+                     const processRankChanges = (character) => {
+                        if (character.points >= 3) {
+                            if (character.dan < 10) { // Promotion
+                                character.dan++;
+                                character.points = 0;
+                                triggerConfetti();
+                            } else { // At max rank
+                                character.points = 2; // Cap points
+                            }
+                        } else if (character.points <= -3) {
+                            if (character.dan > 1) { // Demotion
+                                character.dan--;
+                                character.points = 0;
+                            } else { // At min rank
+                                character.points = -3; // Set floor
+                            }
+                        }
+                    };
+
+                    if (result === 'draw') {
+                        p1_char.matches.push({ opponent: {playerId: p2.playerId, playerName: p2.playerName, characterName: p2.name}, side: 'p1', result: 'draw' });
+                        p2_char.matches.push({ opponent: {playerId: p1.playerId, playerName: p1.playerName, characterName: p1.name}, side: 'p2', result: 'draw' });
+                    } else {
+                        const winner = result === 'p1_wins' ? p1_char : p2_char;
+                        const loser = result === 'p1_wins' ? p2_char : p1_char;
+                        const winner_data = result === 'p1_wins' ? p1 : p2;
+                        const loser_data = result === 'p1_wins' ? p2 : p1;
+                        
+                        winner.points++;
+                        loser.points--;
+                        
+                        winner.matches.push({ opponent: {playerId: loser_data.playerId, playerName: loser_data.playerName, characterName: loser_data.name}, side: (result === 'p1_wins' ? 'p1':'p2'), result: 'win' });
+                        loser.matches.push({ opponent: {playerId: winner_data.playerId, playerName: winner_data.playerName, characterName: winner_data.name}, side: (result === 'p1_wins' ? 'p2':'p1'), result: 'loss' });
+
+                        processRankChanges(winner);
+                        processRankChanges(loser);
+                    }
+
+                    app.clearMatchSelection();
+                    savePlayers();
+                    hideModal();
+                    updateAndAnimateBoard();
+                },
+                clearMatchSelection() {
+                    matchSelection = { p1: null, p2: null };
+                    startMatchContainer.classList.add('hidden');
+                    renderBoard(); // Re-render to remove selection styles
+                },
+                handlePlayerSelect(playerId, charName) {
+                    const player = players.find(p => p.id === playerId);
+                    const character = player?.characters.find(c => c.name === charName);
+                    if (!character) return;
+
+                    const fullCharData = { ...character, playerId, playerName: player.name };
+
+                    // Deselect if already selected
+                    if (matchSelection.p1?.playerId === playerId && matchSelection.p1?.name === charName) {
+                        matchSelection.p1 = matchSelection.p2;
+                        matchSelection.p2 = null;
+                    } else if (matchSelection.p2?.playerId === playerId && matchSelection.p2?.name === charName) {
+                        matchSelection.p2 = null;
+                    } else { // Select if not selected
+                        if (!matchSelection.p1) matchSelection.p1 = fullCharData;
+                        else if (!matchSelection.p2) matchSelection.p2 = fullCharData;
+                    }
+                    
+                    startMatchContainer.classList.toggle('hidden', !(matchSelection.p1 && matchSelection.p2));
+                    renderBoard();
+                },
+
+                moveCharacter(playerId, characterName, direction) {
+                    const player = players.find(p => p.id === playerId);
+                    if (!player) return;
+                    const sourceChar = player.characters.find(c => c.name === characterName);
+                    if (!sourceChar) return;
+                    const charactersInRank = players.flatMap(p => p.characters.map(char => ({...char, playerId: p.id}))).filter(char => char.dan === sourceChar.dan);
+                    charactersInRank.sort((a, b) => b.points - a.points || a.sortOrder - b.sortOrder);
+                    const sourceIndex = charactersInRank.findIndex(c => c.playerId === playerId && c.name === characterName);
+                    if (sourceIndex === -1) return;
+                    const targetIndex = direction === 'up' ? sourceIndex - 1 : sourceIndex + 1;
+                    if (targetIndex < 0 || targetIndex >= charactersInRank.length) return;
+                    const targetCharData = charactersInRank[targetIndex];
+                    if (sourceChar.points !== targetCharData.points) return;
+                    const targetPlayer = players.find(p => p.id === targetCharData.playerId);
+                    const targetChar = targetPlayer.characters.find(c => c.name === targetCharData.name);
+                    [sourceChar.sortOrder, targetChar.sortOrder] = [targetChar.sortOrder, sourceChar.sortOrder];
+                    savePlayers();
+                    updateAndAnimateBoard();
+                },
+                promptDeleteCharacter(playerId, characterName) {
+                    const player = players.find(p => p.id === playerId);
+                    if (!player) return;
+                    showModal(`Delete ${characterName} for player ${player.name}?`, [
+                        { text: 'Cancel', classes: 'bg-gray-700 hover:bg-gray-600 text-white py-2 px-6 transition duration-200 text-xs btn' },
+                        { text: 'Delete', classes: 'bg-rose-600 hover:bg-rose-700 text-white py-2 px-6 transition duration-200 text-xs btn', onClick: () => this.deleteCharacter(playerId, characterName) }
+                    ]);
+                },
+                deleteCharacter(playerId, characterName) {
+                    const playerIndex = players.findIndex(p => p.id === playerId);
+                    if (playerIndex === -1) return;
+                    players[playerIndex].characters = players[playerIndex].characters.filter(c => c.name !== characterName);
+                    if (players[playerIndex].characters.length === 0) players.splice(playerIndex, 1);
+                    savePlayers();
+                    updateAndAnimateBoard();
+                },
+                toggleAccordion(button) {
+                    const content = document.querySelector(button.dataset.target);
+                    if (!content) return;
+                    
+                    button.classList.toggle('open');
+                    content.classList.toggle('open');
+                    
+                    if (content.classList.contains('open')) {
+                        const canvasId = content.querySelector('canvas').id;
+                        const playerId = button.dataset.playerId;
+                        const charName = button.dataset.charName;
+
+                        const player = players.find(p => p.id === playerId);
+                        const character = player?.characters.find(c => c.name === charName);
+
+                        if (character) {
+                             renderWinLossGraph(canvasId, character.matches);
+                        }
+                    }
+                }
+            };
+            window.app = app;
+
+            rankingBoard.addEventListener('click', function(e) {
+                const button = e.target.closest('button');
+                if (!button) return;
+                const { action, playerId, charName, direction } = button.dataset;
+                if (action === 'select') app.handlePlayerSelect(playerId, charName);
+                else if (action === 'move') app.moveCharacter(playerId, charName, direction);
+                else if (action === 'delete') app.promptDeleteCharacter(playerId, charName);
+                else if (button.classList.contains('accordion-toggle')) app.toggleAccordion(button);
+            });
+
+            addForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const gamerTag = gamerTagInput.value.trim();
+                const characterName = characterNameInput.value.trim();
+                const selectedDan = parseInt(danSelect.value, 10);
+                const selectedPoints = parseInt(pointsSelect.value, 10);
+                if (!gamerTag || !characterName) return;
+                let player = players.find(p => p.name.toLowerCase() === gamerTag.toLowerCase());
+                const newCharacter = { name: characterName, dan: selectedDan, points: selectedPoints, sortOrder: Date.now(), matches: [] };
+                if (player) {
+                    if (player.characters.some(c => c.name.toLowerCase() === characterName.toLowerCase())) {
+                        showModal('This character already exists for this player.', [{ text: 'OK', classes: 'bg-yellow-500 hover:bg-yellow-600 text-black py-2 px-6 transition duration-200 text-xs btn' }]);
+                        return;
+                    }
+                    player.characters.push(newCharacter);
+                } else {
+                    players.push({ id: crypto.randomUUID(), name: gamerTag, characters: [newCharacter] });
+                }
+                savePlayers();
+                updateAndAnimateBoard();
+                addForm.reset();
+                danSelect.value = '1';
+                danSelect.parentElement.querySelector('.custom-select-trigger span').textContent = '1 Dan';
+                pointsSelect.value = '0';
+                pointsSelect.parentElement.querySelector('.custom-select-trigger span').textContent = '0';
+                document.querySelectorAll('.custom-options').forEach(container => {
+                    container.querySelectorAll('.custom-option').forEach(opt => opt.classList.remove('selected'));
+                    const defaultDan = container.querySelector('[data-value="1"]');
+                    if(defaultDan) defaultDan.classList.add('selected');
+                    const defaultPoints = container.querySelector('[data-value="0"]');
+                    if(defaultPoints) defaultPoints.classList.add('selected');
+                });
+            });
+            
+            // --- IMPORT/EXPORT FUNCTIONS ---
+            function executeExport() {
+                if (players.length === 0) {
+                     showModal('There is no data to export.', [{ text: 'OK', classes: 'bg-yellow-500 hover:bg-yellow-600 text-black py-2 px-6 transition duration-200 text-xs btn' }]);
+                    return;
+                }
+                const header = ['playerId', 'playerName', 'characterName', 'dan', 'points', 'sortOrder', 'matches'];
+                const rows = players.flatMap(player => 
+                    player.characters.map(character => [
+                        player.id, player.name, character.name, character.dan, character.points, 
+                        character.sortOrder || Date.now(), JSON.stringify(character.matches || [])
+                    ])
+                );
+                let csvContent = "data:text/csv;charset=utf-8," + header.join(",") + "\n" + rows.map(e => `"${e.join('","')}"`).join("\n");
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", `ronin_dan_ranking_data.csv`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+            function handleFileImport(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const lines = e.target.result.trim().split('\n');
+                        const header = lines.shift().trim().split(',').map(h => h.replace(/"/g, ''));
+                        const expectedHeader = ['playerId', 'playerName', 'characterName', 'dan', 'points', 'sortOrder', 'matches'];
+                        if(JSON.stringify(header) !== JSON.stringify(expectedHeader)) throw new Error("Invalid CSV header format.");
+                        let isValid = true;
+                        const validatedRows = lines.map(line => {
+                            if (!line) return null;
+                            const values = line.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g).map(v => v.replace(/"/g, ''));
+                            if (values.length !== expectedHeader.length) { isValid = false; return null; }
+                            const [dan, points, sortOrder] = [parseInt(values[3], 10), parseInt(values[4], 10), parseInt(values[5], 10)];
+                            try { 
+                                const matches = JSON.parse(values[6]);
+                                if (!Array.isArray(matches)) { isValid = false; return null; }
+                            } catch { isValid = false; return null; }
+                            if (isNaN(dan) || dan < 1 || dan > 10 || isNaN(points) || points < -2 || points > 2 || isNaN(sortOrder) || !values[0] || !values[1] || !values[2]) { isValid = false; return null; }
+                            return values;
+                        }).filter(Boolean);
+                        if (!isValid || validatedRows.length !== lines.filter(Boolean).length) throw new Error("CSV contains improperly formatted or invalid data.");
+                        const importedPlayersMap = new Map();
+                        validatedRows.forEach(values => {
+                            const [playerId, playerName, characterName, dan, points, sortOrder, matches] = values;
+                            if (!importedPlayersMap.has(playerId)) importedPlayersMap.set(playerId, { id: playerId, name: playerName, characters: [] });
+                            importedPlayersMap.get(playerId).characters.push({ name: characterName, dan: parseInt(dan), points: parseInt(points), sortOrder: parseInt(sortOrder), matches: JSON.parse(matches) });
+                        });
+                        players = Array.from(importedPlayersMap.values());
+                        savePlayers();
+                        updateAndAnimateBoard();
+                        showModal('Data imported successfully!', [{ text: 'OK', classes: 'bg-yellow-500 hover:bg-yellow-600 text-black py-2 px-6 transition duration-200 text-xs btn' }]);
+                    } catch (error) {
+                        console.error("Error parsing CSV:", error);
+                        showModal('Import failed. The selected file is improperly formatted or contains invalid data.', [{ text: 'OK', classes: 'bg-rose-600 hover:bg-rose-700 text-white py-2 px-6 transition duration-200 text-xs btn' }]);
+                    } finally {
+                        importFileInput.value = "";
+                    }
+                };
+                reader.readAsText(file);
+            };
+            exportButton.addEventListener('click', () => {
+                 showModal('Save the current ranking board to a .csv file?', [
+                    { text: 'Cancel', classes: 'bg-gray-700 hover:bg-gray-600 text-white py-2 px-6 transition duration-200 text-xs btn' },
+                    { text: 'Save', classes: 'bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-6 transition duration-200 text-xs btn', onClick: executeExport }
+                ]);
+            });
+            importButton.addEventListener('click', () => {
+                showModal('This will overwrite all current data.', [
+                    { text: 'Cancel', classes: 'bg-gray-700 hover:bg-gray-600 text-white py-2 px-6 transition duration-200 text-xs btn' },
+                    { text: 'Import', classes: 'bg-yellow-500 hover:bg-yellow-600 text-black py-2 px-6 transition duration-200 text-xs btn', onClick: () => importFileInput.click() }
+                ]);
+            });
+            importFileInput.addEventListener('change', handleFileImport);
+            
+            // Match Modal Listeners
+            startMatchBtn.addEventListener('click', () => {
+                const { p1, p2 } = matchSelection;
+                if (!p1 || !p2) return;
+                
+                document.getElementById('match-p1-name').textContent = p1.playerName;
+                document.getElementById('match-p1-char').textContent = p1.name;
+                document.getElementById('match-p2-name').textContent = p2.playerName;
+                document.getElementById('match-p2-char').textContent = p2.name;
+
+                matchModal.classList.remove('hidden');
+            });
+             document.getElementById('match-p1-winner-btn').addEventListener('click', () => app.resolveMatch('p1_wins'));
+            document.getElementById('match-p2-winner-btn').addEventListener('click', () => app.resolveMatch('p2_wins'));
+            document.getElementById('match-draw-btn').addEventListener('click', () => app.resolveMatch('draw'));
+            document.getElementById('match-cancel-btn').addEventListener('click', () => {
+                hideModal();
+                app.clearMatchSelection();
+            });
+            clearSelectionBtn.addEventListener('click', () => app.clearMatchSelection());
+
+            // Rules Modal Listeners
+            rulesLink.addEventListener('click', (e) => { e.preventDefault(); rulesModal.classList.remove('hidden'); });
+            closeRulesModalButton.addEventListener('click', () => { rulesModal.classList.add('hidden'); });
+            rulesModal.addEventListener('click', (e) => { if (e.target === rulesModal) rulesModal.classList.add('hidden'); });
+            
+            // Usage Modal Listeners
+            usageLink.addEventListener('click', (e) => { e.preventDefault(); usageModal.classList.remove('hidden'); });
+            closeUsageModalButton.addEventListener('click', () => { usageModal.classList.add('hidden'); });
+            usageModal.addEventListener('click', (e) => { if (e.target === usageModal) usageModal.classList.add('hidden'); });
+
             updateAndAnimateBoard();
         });
     </script>
